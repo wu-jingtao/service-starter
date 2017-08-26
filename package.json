@@ -1,0 +1,35 @@
+{
+    "name": "service-starter",
+    "version": "0.0.2",
+    "description": "标准化nodejs程序的结构体系。提供一个通用的启动和关闭程序的方式。兼容Docker。",
+    "main": "./bin/index.js",
+    "types":"./bin/index.ts.d",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mx601595686/service-starter.git"
+    },
+    "scripts": {
+        "compile": "./node_modules/.bin/gulp compile"
+    },
+    "keywords": [
+        "service",
+        "starter"
+    ],
+    "author": "wujingtao",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/mx601595686/service-starter/issues"
+    },
+    "homepage": "https://github.com/mx601595686/service-starter#readme",
+    "devDependencies": {
+        "@types/chalk": "^0.4.31",
+        "@types/node": "^7.0.13",
+        "gulp": "^3.9.1",
+        "gulp-sourcemaps": "^2.4.1",
+        "gulp-typescript": "^3.1.5",
+        "typescript": "^2.2.2"
+    },
+    "dependencies": {
+        "chalk": "^2.1.0"
+    }
+}

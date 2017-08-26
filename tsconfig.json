@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2017",
+        "removeComments": false,
+        "preserveConstEnums": true,
+        "declaration": true,
+        "experimentalDecorators": false,
+        "noEmitOnError": true,
+        "strict": true,
+        "lib": [
+            "es2017"
+        ]
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}
