@@ -3,7 +3,7 @@
     "version": "0.0.2",
     "description": "标准化nodejs程序的结构体系。提供一个通用的启动和关闭程序的方式。兼容Docker。",
     "main": "./bin/index.js",
-    "types": "./bin/index.ts.d",
+    "types": "./bin/index.d.ts",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/mx601595686/service-starter.git"

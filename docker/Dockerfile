@@ -1,0 +1,17 @@
+# 如果容器还缺少curl，那么还需要安装curl
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+	&& rm -rf /var/lib/apt/lists/*
+
+HEALTHCHECK \
+# 每次检查的间隔时间
+    --interval=1m \
+# 单次检查的超时时长
+    --timeout=30s \
+# 这个可以理解为在开始正式检查之前容器所需要的启动时间
+    --start-period=30s \
+# 连续多少次检查失败可判定该服务是unhealthy
+    --retries=3 \
+# 调用程序所暴露出的健康检查接口
+    CMD health_check.sh
+
