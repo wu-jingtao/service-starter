@@ -84,6 +84,10 @@ export declare class ServicesManager extends events.EventEmitter {
     private _isStarted;
     private static _servicesManagerCreated;
     /**
+     * ServicesManager 的名称，默认是类名。
+     */
+    readonly name: string;
+    /**
      * 注册的服务。(服务只应当通过registerService来进行注册)
      */
     readonly _services: _Services[];

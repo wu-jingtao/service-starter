@@ -102,6 +102,13 @@ export class ServicesManager extends events.EventEmitter {
     private static _servicesManagerCreated = false; //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
 
     /**
+     * ServicesManager 的名称，默认是类名。
+     */
+    get name(): string {
+        return this.constructor.name;
+    }
+
+    /**
      * 注册的服务。(服务只应当通过registerService来进行注册)
      */
     readonly _services: _Services[] = [];
@@ -109,7 +116,7 @@ export class ServicesManager extends events.EventEmitter {
     constructor(config: ServicesManagerConfig = {}) {
         super();
 
-        if (ServicesManager._servicesManagerCreated) throw new Error('ServicesManager已经被创建了');
+        if (ServicesManager._servicesManagerCreated) throw new Error(`${this.name}已经被创建了`);
         ServicesManager._servicesManagerCreated = true;
 
         process.on('unhandledRejection', (err: Error) => {
@@ -157,12 +164,12 @@ export class ServicesManager extends events.EventEmitter {
                     try {
                         const status = await item.service.onHealthChecking();
                         if (status != HealthStatus.success) {
-                            log.w(item.name, '的运行健康状况出现不正常：', status);
+                            log.w('服务',item.name, '的运行健康状况出现不正常：', status);
                             result = status;
                             break;
                         }
                     } catch (error) {
-                        log.e(item.name, '在进行健康检查时发生异常', error);
+                        log.e('服务',item.name, '在进行健康检查时发生异常', error);
                         break;
                     }
                 }
@@ -170,7 +177,7 @@ export class ServicesManager extends events.EventEmitter {
                 res.end(result.toString());
             }).listen("/tmp/node_service_starter/health_checking.sock", (err: Error) => {
                 if (err) {
-                    log.e('健康检查服务启动失败：', err);
+                    log.e(this.name,'健康检查服务启动失败：', err);
                     process.exit(1);
                 }
             });
@@ -187,7 +194,7 @@ export class ServicesManager extends events.EventEmitter {
     start() {
         if (this._isStarted === false) {
 
-            log.l(this.constructor.name, '开始启动服务');
+            log.l(this.name, '开始启动服务');
             this._isStarted = true;
 
             (async () => {
@@ -224,7 +231,7 @@ export class ServicesManager extends events.EventEmitter {
      */
     stop(exitCode = 0) {
         if (this._isStarted === true) {
-            log.l(this.constructor.name, '开始停止服务');
+            log.l(this.name, '开始停止服务');
             this._isStarted = false;
 
             (async () => {
