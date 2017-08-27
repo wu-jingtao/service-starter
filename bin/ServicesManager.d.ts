@@ -44,10 +44,49 @@ export interface ServicesManagerConfig {
      */
     startHealthChecking?: boolean;
 }
+/**
+ * 保存注册了的服务
+ *
+ * @class _Services
+ */
+export declare class _Services {
+    /**
+     * 服务实例
+     *
+     * @type {ServiceModule}
+     * @memberof _Services
+     */
+    readonly service: ServiceModule;
+    /**
+     * 服务是否已启动
+     *
+     * @type {boolean}
+     * @memberof _Services
+     */
+    isStarted: boolean;
+    /**
+     * 服务的名称。（这里再保存一次服务的名称是因为不允许服务名称在运行过程中被改变）
+     *
+     * @type {string}
+     * @memberof _Services
+     */
+    readonly name: string;
+    /**
+     * 绑定在服务上的错误监听器。用于之后删除监听器时使用
+     *
+     * @type {Function}
+     * @memberof _Services
+     */
+    errorListener: Function;
+    constructor(service: ServiceModule);
+}
 export declare class ServicesManager extends events.EventEmitter {
     private _isStarted;
     private static _servicesManagerCreated;
-    private readonly _services;
+    /**
+     * 注册的服务。(服务只应当通过registerService来进行注册)
+     */
+    readonly _services: _Services[];
     constructor(config?: ServicesManagerConfig);
     /**
      * 启动所有注册的服务。按照注册的先后顺序来启动服务。先注册的服务先启动。
@@ -61,7 +100,7 @@ export declare class ServicesManager extends events.EventEmitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后程序将会被退出。
      * 当所有服务都停止后出发stopped事件
      *
-     * @param exitCode 程序退出状态码
+     * @param exitCode 程序退出状态码。 1是未捕捉的系统错误 2是用户ServiceModule的onError发出的‘stop’信号
      */
     stop(exitCode?: number): void;
     /**

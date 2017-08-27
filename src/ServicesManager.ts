@@ -57,7 +57,7 @@ export interface ServicesManagerConfig {
  * 
  * @class _Services
  */
-class _Services {
+export class _Services {
     /**
      * 服务实例
      * 
@@ -100,7 +100,11 @@ export class ServicesManager extends events.EventEmitter {
 
     private _isStarted = false;    //是否已经启动
     private static _servicesManagerCreated = false; //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
-    private readonly _services: _Services[] = [];   //注册的服务
+
+    /**
+     * 注册的服务。(服务只应当通过registerService来进行注册)
+     */
+    readonly _services: _Services[] = [];
 
     constructor(config: ServicesManagerConfig = {}) {
         super();
@@ -109,7 +113,7 @@ export class ServicesManager extends events.EventEmitter {
         ServicesManager._servicesManagerCreated = true;
 
         process.on('unhandledRejection', (err: Error) => {
-            log.e('程序出现未捕捉Promise异常', err);
+            log.e('程序出现未捕捉Promise异常：', err);
 
             if (config.stopOnHaveUnhandledRejection !== false) {
                 this.stop(1);
@@ -117,7 +121,7 @@ export class ServicesManager extends events.EventEmitter {
         });
 
         process.on('uncaughtException', (err: Error) => {
-            log.e('程序出现未捕捉异常', err);
+            log.e('程序出现未捕捉异常：', err);
 
             if (config.stopOnHaveUncaughtException !== false) {
                 this.stop(1);
@@ -142,8 +146,7 @@ export class ServicesManager extends events.EventEmitter {
             fs.removeSync("/tmp/node_service_starter/health_checking.sock");
 
             http.createServer(async (req, res) => {
-                log.l('接收到健康检查请求');
-
+                //log.l('接收到健康检查请求');
                 let result = HealthStatus.success;
 
                 //检查每一个服务的健康状况
@@ -189,19 +192,21 @@ export class ServicesManager extends events.EventEmitter {
 
             (async () => {
                 for (let item of this._services) {
-                    try {
-                        log.starting('开始启动服务', item.name);
+                    if (item.isStarted === false) {
+                        try {
+                            log.starting('开始启动服务', item.name);
 
-                        item.isStarted = true;
-                        await item.service.onStart();
-                        //绑定错误处理器
-                        item.service.on('error', item.errorListener);
+                            item.isStarted = true;
+                            await item.service.onStart();
+                            //绑定错误处理器
+                            item.service.on('error', item.errorListener);
 
-                        log.started('服务启动成功', item.name);
-                    } catch (error) {
-                        log.startFailed('服务启动失败', item.name, error);
-                        this.stop();
-                        return;
+                            log.started('服务启动成功', item.name);
+                        } catch (error) {
+                            log.startFailed('服务启动失败', item.name, error);
+                            this.stop();
+                            return;
+                        }
                     }
                 }
 
@@ -215,7 +220,7 @@ export class ServicesManager extends events.EventEmitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后程序将会被退出。
      * 当所有服务都停止后出发stopped事件
      * 
-     * @param exitCode 程序退出状态码
+     * @param exitCode 程序退出状态码。 1是未捕捉的系统错误 2是用户ServiceModule的onError发出的‘stop’信号
      */
     stop(exitCode = 0) {
         if (this._isStarted === true) {
@@ -272,7 +277,7 @@ export class ServicesManager extends events.EventEmitter {
                         break;
                     case 'stop':
                         this.onError(err, serviceModule);
-                        this.stop();
+                        this.stop(2);
                         break;
                     default:
                         if (value instanceof Error)

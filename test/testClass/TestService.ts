@@ -1,8 +1,12 @@
-import { ServiceModule, log } from "../../bin/index";
+import { ServiceModule, log, HealthStatus } from "../../bin/index";
 
 export class TestService1 extends ServiceModule {
 
     async onStart(): Promise<void> {
+        log.l(this.name);
+    }
+
+    async onStop() {
         log.l(this.name);
     }
 }
@@ -13,17 +17,21 @@ export class TestService2 extends ServiceModule {
         return '测试类2';
     }
 
-    interval: NodeJS.Timer;
+    status = HealthStatus.success;
 
     async onStart(): Promise<void> {
         log.l(this.name);
-        this.interval = setInterval(() => {
-            //什么都不做只是为了让程序不立即退出
-        }, 1000);
+        
+        setTimeout(() => {
+            this.status = HealthStatus.unhealthy;
+        }, 3000);
     }
-    
+
     async onStop() {
-        log.l('停止', this.name);
-        clearInterval(this.interval);
+        log.l(this.name);
+    }
+
+    async onHealthChecking() {
+        return this.status;
     }
 }
