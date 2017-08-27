@@ -1,6 +1,7 @@
 import log from './Log';
 import events = require('events');
 import ServiceModule from "./ServiceModule";
+import http = require('http');
 
 /**
  * ServicesManager配置
@@ -40,6 +41,14 @@ export interface ServicesManagerConfig {
     * @memberof ServicesManagerConfig
     */
     stopOnHaveSIGINT?: boolean;
+
+    /**
+     * 是否启动健康检查(默认true,启动)
+     * 
+     * @type {boolean}
+     * @memberof ServicesManagerConfig
+     */
+    startHealthChecking?: boolean;
 }
 
 /**
@@ -125,6 +134,16 @@ export default class ServicesManager extends events.EventEmitter {
                 this.stop();
             }
         });
+
+        if (config.startHealthChecking !== false) {
+            http.createServer((req, res) => {
+                log.l('接受到健康检查请求');
+                res.end(0);
+            }).listen("/app/health_checking.sock", (err: Error) => {
+                log.e('服务健康检查启动失败：', err);
+                process.exit(1);
+            });
+        }
     }
 
     /**
@@ -210,17 +229,17 @@ export default class ServicesManager extends events.EventEmitter {
                 const value = service.service.onError(err);
                 switch (value) {
                     case false:
-                        this.onError(serviceModule, err);
+                        this.onError(err, serviceModule);
                         break;
                     case true:
                         break;
                     case 'stop':
-                        this.onError(serviceModule, err);
+                        this.onError(err, serviceModule);
                         this.stop();
                         break;
                     default:
                         if (value instanceof Error)
-                            this.onError(serviceModule, value);
+                            this.onError(value, serviceModule);
                         break;
                 }
             };
@@ -229,11 +248,14 @@ export default class ServicesManager extends events.EventEmitter {
         }
     }
 
-    protected onHealthChecking() {
-
-    }
-
-    protected onError(service: ServiceModule, err: Error) {
+    /**
+     * 服务运行过程中的错误处理方法。服务启动或关闭过程中产生的错误不会触发该方法。
+     * 
+     * @param {Error} err 
+     * @param {ServiceModule} service 发生错误的服务实例
+     * @memberof ServicesManager
+     */
+    onError(err: Error, service: ServiceModule) {
         log.e(service.name, '发生错误：', err);
     }
 }
