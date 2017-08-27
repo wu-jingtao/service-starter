@@ -61,9 +61,9 @@ export declare class ServicesManager extends events.EventEmitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后程序将会被退出。
      * 当所有服务都停止后出发stopped事件
      *
-     * @memberof ServicesManager
+     * @param exitCode 程序退出状态码
      */
-    stop(): void;
+    stop(exitCode?: number): void;
     /**
      * 注册服务
      *

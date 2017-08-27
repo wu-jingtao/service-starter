@@ -7,6 +7,11 @@
             "taskName": "编译",
             "type": "shell",
             "command": "npm run compile"
+        },
+        {
+            "taskName": "测试",
+            "type": "shell",
+            "command": "npm run test"
         }
     ]
 }

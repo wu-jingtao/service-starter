@@ -1,7 +1,8 @@
-import log from './Log';
+import { log } from './Log';
 import events = require('events');
-import { ServiceModule } from "./ServiceModule";
+import { ServiceModule, HealthStatus } from "./ServiceModule";
 import http = require('http');
+import fs = require('fs-extra');
 
 /**
  * ServicesManager配置
@@ -111,7 +112,7 @@ export class ServicesManager extends events.EventEmitter {
             log.e('程序出现未捕捉Promise异常', err);
 
             if (config.stopOnHaveUnhandledRejection !== false) {
-                this.stop();
+                this.stop(1);
             }
         });
 
@@ -119,7 +120,7 @@ export class ServicesManager extends events.EventEmitter {
             log.e('程序出现未捕捉异常', err);
 
             if (config.stopOnHaveUncaughtException !== false) {
-                this.stop();
+                this.stop(1);
             }
         });
 
@@ -135,20 +136,47 @@ export class ServicesManager extends events.EventEmitter {
             }
         });
 
+        //配置健康检查服务
         if (config.startHealthChecking !== false) {
-            http.createServer((req, res) => {
-                log.l('接受到健康检查请求');
-                res.end(0);
-            }).listen("/var/run/node_service_starter/health_checking.sock", (err: Error) => {
-                log.e('服务健康检查启动失败：', err);
-                process.exit(1);
+            //删除之前的接口，避免被占用
+            fs.removeSync("/tmp/node_service_starter/health_checking.sock");
+
+            http.createServer(async (req, res) => {
+                log.l('接收到健康检查请求');
+
+                let result = HealthStatus.success;
+
+                //检查每一个服务的健康状况
+                for (let item of this._services) {
+                    //跳过未启动的服务
+                    if (!item.isStarted) continue;
+
+                    try {
+                        const status = await item.service.onHealthChecking();
+                        if (status != HealthStatus.success) {
+                            log.w(item.name, '的运行健康状况出现不正常：', status);
+                            result = status;
+                            break;
+                        }
+                    } catch (error) {
+                        log.e(item.name, '在进行健康检查时发生异常', error);
+                        break;
+                    }
+                }
+
+                res.end(result.toString());
+            }).listen("/tmp/node_service_starter/health_checking.sock", (err: Error) => {
+                if (err) {
+                    log.e('健康检查服务启动失败：', err);
+                    process.exit(1);
+                }
             });
         }
     }
 
     /**
-     * 启动所有注册的服务。按照注册的先后顺序来启动服务。先注册的服务先启动。
-     * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。
+     * 启动所有注册的服务。按照注册的先后顺序来启动服务。先注册的服务先启动。     
+     * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。     
      * 启动结束后会触发started事件
      * 
      * @memberof ServicesManager
@@ -156,19 +184,22 @@ export class ServicesManager extends events.EventEmitter {
     start() {
         if (this._isStarted === false) {
 
-            log.l('开始启动服务');
+            log.l(this.constructor.name, '开始启动服务');
             this._isStarted = true;
 
             (async () => {
                 for (let item of this._services) {
                     try {
+                        log.starting('开始启动服务', item.name);
+
                         item.isStarted = true;
                         await item.service.onStart();
                         //绑定错误处理器
                         item.service.on('error', item.errorListener);
-                        log.l(item.name, '[启动成功]');
+
+                        log.started('服务启动成功', item.name);
                     } catch (error) {
-                        log.e('启动', item.name, '时出现异常：', error);
+                        log.startFailed('服务启动失败', item.name, error);
                         this.stop();
                         return;
                     }
@@ -184,30 +215,36 @@ export class ServicesManager extends events.EventEmitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后程序将会被退出。
      * 当所有服务都停止后出发stopped事件
      * 
-     * @memberof ServicesManager
+     * @param exitCode 程序退出状态码
      */
-    stop() {
+    stop(exitCode = 0) {
         if (this._isStarted === true) {
-            log.l('开始停止服务');
+            log.l(this.constructor.name, '开始停止服务');
             this._isStarted = false;
 
             (async () => {
                 for (let item of this._services.reverse()) {
                     if (item.isStarted) {   //只关闭已启动了的服务
                         try {
+                            log.stopping('开始停止服务', item.name);
+
                             item.isStarted = false;
                             await item.service.onStop();
                             //清除绑定的错误监听器
                             item.service.removeListener('error', item.errorListener);
-                            log.l(item.name, '[停止成功]');
+
+                            log.stopped('服务启动成功', item.name);
                         } catch (error) {
-                            log.w('停止', item.name, '时出现异常：', error);
+                            log.stopFailed('服务停止失败', item.name, error);
                         }
                     }
                 }
 
                 log.l('所有服务已停止');
                 this.emit('stopped');
+
+                //退出服务
+                process.exit(exitCode);
             })();
         }
     }
