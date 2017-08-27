@@ -1,6 +1,6 @@
 import log from './Log';
 import events = require('events');
-import ServiceModule from "./ServiceModule";
+import { ServiceModule } from "./ServiceModule";
 import http = require('http');
 
 /**
@@ -95,7 +95,7 @@ class _Services {
     }
 }
 
-export default class ServicesManager extends events.EventEmitter {
+export class ServicesManager extends events.EventEmitter {
 
     private _isStarted = false;    //是否已经启动
     private static _servicesManagerCreated = false; //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
@@ -139,7 +139,7 @@ export default class ServicesManager extends events.EventEmitter {
             http.createServer((req, res) => {
                 log.l('接受到健康检查请求');
                 res.end(0);
-            }).listen("/app/health_checking.sock", (err: Error) => {
+            }).listen("/var/run/node_service_starter/health_checking.sock", (err: Error) => {
                 log.e('服务健康检查启动失败：', err);
                 process.exit(1);
             });

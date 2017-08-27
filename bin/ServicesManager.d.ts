@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import events = require('events');
-import ServiceModule from "./ServiceModule";
+import { ServiceModule } from "./ServiceModule";
 /**
  * ServicesManager配置
  *
@@ -44,7 +44,7 @@ export interface ServicesManagerConfig {
      */
     startHealthChecking?: boolean;
 }
-export default class ServicesManager extends events.EventEmitter {
+export declare class ServicesManager extends events.EventEmitter {
     private _isStarted;
     private static _servicesManagerCreated;
     private readonly _services;

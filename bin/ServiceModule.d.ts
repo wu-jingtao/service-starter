@@ -19,7 +19,7 @@ export declare enum HealthStatus {
 /**
  * 所有服务的父类
  */
-export default abstract class ServiceModule extends events.EventEmitter {
+export declare abstract class ServiceModule extends events.EventEmitter {
     /**
      * 启动服务
      *
