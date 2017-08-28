@@ -34,8 +34,4 @@ export class TestService2 extends ServiceModule {
     async onHealthChecking() {
         return this.status;
     }
-
-    onError():any{
-
-    }
 }

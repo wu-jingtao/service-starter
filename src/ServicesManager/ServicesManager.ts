@@ -68,8 +68,11 @@ export class ServicesManager extends events.EventEmitter {
 
         //配置健康检查服务
         if (config.startHealthChecking !== false) {
+            //要被监听的端口
+            const port = "/tmp/service_starter_health_checking.sock";
+
             //删除之前的接口，避免被占用
-            fs.removeSync("/tmp/node_service_starter/health_checking.sock");
+            fs.removeSync(port);
 
             http.createServer(async (req, res) => {
                 //log.l('接收到健康检查请求');
@@ -95,7 +98,7 @@ export class ServicesManager extends events.EventEmitter {
                 }
 
                 res.end(result.toString());
-            }).listen("/tmp/node_service_starter/health_checking.sock", (err: Error) => {
+            }).listen(port, (err: Error) => {
                 if (err) {
                     log.e(this.name, '健康检查服务启动失败：', err);
                     process.exit(1);

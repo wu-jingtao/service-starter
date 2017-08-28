@@ -1,5 +1,5 @@
 import expect = require('expect.js');
-import { log, ServicesManager } from "../bin/index";
+import { ServicesManager } from "../bin/index";
 import child_process = require('child_process');
 
 import { TestService1, TestService2 } from "./testClass/TestService";
@@ -22,7 +22,8 @@ describe('开始测试ServicesManager与ServiceModule', function () {
     it('测试healthChecking', function (done) {
         this.timeout(10000);
         
-        const cmd = "curl -s --no-buffer -XGET --unix-socket /tmp/node_service_starter/health_checking.sock http://";
+        const cmd = "curl -s --no-buffer -XGET --unix-socket /tmp/service_starter_health_checking.sock http://";
+        
         child_process.exec(cmd, (err, stdout, stderr) => {
             if (stderr.trim() != '') done(new Error('请求healthChecking接口时发生错误:' + stderr))
             else if (err) done(new Error('请求healthChecking接口时发生错误:' + err))
