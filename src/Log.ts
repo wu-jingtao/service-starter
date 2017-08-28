@@ -42,7 +42,7 @@ export class Log {
      * @param args   其他信息
      */
     starting(status: string, name: string, ...args: any[]) {
-        console.log(chalk.gray(`[${(new Date).toLocaleTimeString()}] `), `[${status}]`, name, args.length > 0 ? '\r\n' : '', ...args);
+        console.log(chalk.gray(`[${(new Date).toLocaleTimeString()}] `), `[${chalk.blue(status)}]`, name, args.length > 0 ? '\r\n' : '', ...args);
     }
 
     /**

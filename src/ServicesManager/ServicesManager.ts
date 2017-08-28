@@ -129,12 +129,12 @@ export class ServicesManager extends events.EventEmitter {
                 if (item.isStarted === true) continue;
 
                 try {
-                    log.starting('开始启动服务', item.name);
+                    log.starting('开始启动', item.name);
                     item.isStarted = true;
                     await item.service.onStart();
-                    log.started('服务启动成功', item.name);
+                    log.started('启动成功', item.name);
                 } catch (error) {
-                    log.startFailed('服务启动失败', item.name, error);
+                    log.startFailed('启动失败', item.name, error);
                     this.stop(1);
                     return;
                 }
@@ -164,12 +164,12 @@ export class ServicesManager extends events.EventEmitter {
                 if (item.isStarted === false) continue;
 
                 try {
-                    log.stopping('开始停止服务', item.name);
+                    log.stopping('开始停止', item.name);
                     item.isStarted = false;
                     await item.service.onStop();
-                    log.stopped('服务启动成功', item.name);
+                    log.stopped('停止成功', item.name);
                 } catch (error) {
-                    log.stopFailed('服务停止失败', item.name, error);
+                    log.stopFailed('停止失败', item.name, error);
                 }
             }
 
