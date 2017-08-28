@@ -1,9 +1,12 @@
 /// <reference types="node" />
 import events = require('events');
 import { HealthStatus } from "./HealthStatus";
+import { RegisteredService } from "../ServicesManager/RegisteredService";
+import { ServicesManager } from "../ServicesManager/ServicesManager";
 /**
  * 所有服务的父类
- * 注意：onStart()和onStop()发生的错误，直接通过在promise中抛出错误来解决。启动之后在运行过程中出现的错误，通过this.emit('error')来处理。
+ * 注意：onStart()和onStop()发生的错误，直接通过在promise中抛出错误来解决。
+ * 启动之后在运行过程中出现的错误，通过this.emit('error')来处理。
  */
 export declare abstract class ServiceModule extends events.EventEmitter {
     /**
@@ -13,6 +16,16 @@ export declare abstract class ServiceModule extends events.EventEmitter {
      * @type {string}
      */
     readonly name: string;
+    /**
+     * 对于服务管理器的引用。
+     * 当服务注册之后，服务管理器会自动对该属性进行绑定
+     */
+    _servicesManager: ServicesManager;
+    /**
+     * 对于服务管理器中注册了的服务的引用
+     * 当服务注册之后，服务管理器会自动对该属性进行绑定
+     */
+    readonly _services: Map<string, RegisteredService>;
     /**
      * 启动服务
      *

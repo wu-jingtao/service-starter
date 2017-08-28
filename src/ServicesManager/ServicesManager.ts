@@ -29,8 +29,10 @@ export class ServicesManager extends events.EventEmitter {
 
     /**
      * 注册的服务列表。(服务只应当通过registerService来进行注册)
+     * 
+     * key是服务名称
      */
-    readonly _services: RegisteredService[] = [];
+    readonly _services = new Map<string, RegisteredService>()
 
     constructor(config: ServicesManagerConfig = {}) {
         super();
@@ -79,7 +81,7 @@ export class ServicesManager extends events.EventEmitter {
                 let result = HealthStatus.success;
 
                 //检查每一个服务的健康状况
-                for (let item of this._services) {
+                for (let item of this._services.values()) {
                     //跳过未启动的服务
                     if (!item.isStarted) continue;
 
@@ -122,7 +124,7 @@ export class ServicesManager extends events.EventEmitter {
         this._isStarted = true;
 
         (async () => {
-            for (let item of this._services) {
+            for (let item of this._services.values()) {
                 //避免重复启动
                 if (item.isStarted === true) continue;
 
@@ -157,7 +159,7 @@ export class ServicesManager extends events.EventEmitter {
         this._isStarted = false;
 
         (async () => {
-            for (let item of Array.from(this._services).reverse()) {
+            for (let item of Array.from(this._services.values()).reverse()) {
                 //只关闭已启动了的服务
                 if (item.isStarted === false) continue;
 
@@ -186,10 +188,10 @@ export class ServicesManager extends events.EventEmitter {
      * @memberof ServicesManager
      */
     registerService(serviceModule: ServiceModule) {
-        if (this._services.some(item => item.name == serviceModule.name)) {
+        if (this._services.has(serviceModule.name)) {
             throw new Error(`服务'${serviceModule.name}'已注册过了`);
         } else {
-            this._services.push(new RegisteredService(serviceModule, this));
+            this._services.set(serviceModule.name, new RegisteredService(serviceModule, this));
         }
     }
 

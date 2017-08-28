@@ -1,10 +1,13 @@
 import events = require('events');
 import { HealthStatus } from "./HealthStatus";
+import { RegisteredService } from "../ServicesManager/RegisteredService";
+import { ServicesManager } from "../ServicesManager/ServicesManager";
 
 
 /**
  * 所有服务的父类    
- * 注意：onStart()和onStop()发生的错误，直接通过在promise中抛出错误来解决。启动之后在运行过程中出现的错误，通过this.emit('error')来处理。
+ * 注意：onStart()和onStop()发生的错误，直接通过在promise中抛出错误来解决。
+ * 启动之后在运行过程中出现的错误，通过this.emit('error')来处理。
  */
 export abstract class ServiceModule extends events.EventEmitter {
 
@@ -16,6 +19,20 @@ export abstract class ServiceModule extends events.EventEmitter {
      */
     get name(): string {
         return this.constructor.name;
+    }
+
+    /**
+     * 对于服务管理器的引用。    
+     * 当服务注册之后，服务管理器会自动对该属性进行绑定
+     */
+    _servicesManager: ServicesManager;
+
+    /**
+     * 对于服务管理器中注册了的服务的引用    
+     * 当服务注册之后，服务管理器会自动对该属性进行绑定
+     */
+    get _services(): Map<string, RegisteredService> {
+        return this._servicesManager._services;
     }
 
     /**

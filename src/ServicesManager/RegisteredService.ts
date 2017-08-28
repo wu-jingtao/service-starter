@@ -54,6 +54,7 @@ export class RegisteredService {
     constructor(service: ServiceModule, manager: ServicesManager) {
         this.service = service;
         this.name = service.name;
+        this.service._servicesManager = manager;
 
         //创建服务运行时错误监听器
         this.errorListener = async (err: Error) => {

@@ -19,8 +19,10 @@ export declare class ServicesManager extends events.EventEmitter {
     readonly name: string;
     /**
      * 注册的服务列表。(服务只应当通过registerService来进行注册)
+     *
+     * key是服务名称
      */
-    readonly _services: RegisteredService[];
+    readonly _services: Map<string, RegisteredService>;
     constructor(config?: ServicesManagerConfig);
     /**
      * 启动所有注册的服务。按照注册的先后顺序来启动服务。先注册的服务先启动。
