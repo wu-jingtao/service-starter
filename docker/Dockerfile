@@ -1,4 +1,4 @@
-# 如果容器还缺少curl，那么还需要安装curl
+# 如果容器还缺少curl，那么还需要安装curl(注意curl版本必须大于7.4 不然没有--unix-socket参数)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
 	&& rm -rf /var/lib/apt/lists/*
