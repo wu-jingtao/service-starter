@@ -49,7 +49,7 @@ export class ServicesManager extends events.EventEmitter {
         ServicesManager._servicesManagerCreated = true;
 
         process.on('unhandledRejection', (err: Error) => {
-            log.e('程序出现未捕捉Promise异常：', err);
+            log.s1.e('程序', '出现未捕捉Promise异常：', err);
 
             if (config.stopOnHaveUnhandledRejection !== false) {
                 //确保不会重复关闭
@@ -65,7 +65,7 @@ export class ServicesManager extends events.EventEmitter {
         });
 
         process.on('uncaughtException', (err: Error) => {
-            log.e('程序出现未捕捉异常：', err);
+            log.s1.e('程序', '出现未捕捉异常：', err);
 
             if (config.stopOnHaveUncaughtException !== false) {
                 if (this._status !== RunningStatus.stopping) {
@@ -135,7 +135,7 @@ export class ServicesManager extends events.EventEmitter {
                 }
             }).listen(port, (err: Error) => {
                 if (err) {
-                    log.e('ServicesManager：健康检查server启动失败：', err);
+                    log.s1.e('ServicesManager', '健康检查server启动失败：', err);
                     process.exit(1);
                 }
             });
@@ -151,10 +151,16 @@ export class ServicesManager extends events.EventEmitter {
     private async _start() {
         //确保只有在stopped的情况下才能执行start
         if (this._status !== RunningStatus.stopped) {
-            throw new Error(`[服务管理器：${this.name}] 在还未完全关闭的情况下又再次被启动。当前的状态为：${RunningStatus[this._status]}`);
+            throw new Error(
+                log.s1.format(
+                    `服务管理器：${this.name}`,
+                    '在还未完全关闭的情况下又再次被启动。',
+                    `当前的状态为：${RunningStatus[this._status]}`
+                )
+            );
         }
 
-        log.l(this.name, '开始启动服务');
+        log.s1.l(log.chalk.bold.bgMagenta(this.name), '开始启动服务');
         this._status = RunningStatus.starting;
 
         for (let item of this.services.values()) {
@@ -166,7 +172,7 @@ export class ServicesManager extends events.EventEmitter {
             }
         }
 
-        log.l('所有服务已启动');
+        log.s1.l(log.chalk.bold.bgMagenta(this.name), '所有服务已启动');
         this._status = RunningStatus.running;
         this.emit('started');
     }
@@ -181,10 +187,16 @@ export class ServicesManager extends events.EventEmitter {
     private async _stop(exitCode: number) {
         //确保不会重复停止
         if (this._status === RunningStatus.stopping || this._status === RunningStatus.stopped) {
-            throw new Error(`[服务管理器：${this.name}] 在处于正在停止或已停止的状态下又再次被停止。当前的状态为：${RunningStatus[this._status]}`);
+            throw new Error(
+                log.s1.format(
+                    `服务管理器：${this.name}`,
+                    '在处于正在停止或已停止的状态下又再次被停止。',
+                    `当前的状态为：${RunningStatus[this._status]}`
+                )
+            );
         }
 
-        log.l(this.name, '开始停止服务');
+        log.s1.l(log.chalk.bold.bgMagenta(this.name), '开始停止服务');
         this._status = RunningStatus.stopping;
 
         for (let item of Array.from(this.services.values()).reverse()) {
@@ -192,7 +204,7 @@ export class ServicesManager extends events.EventEmitter {
                 await item._stop();
         }
 
-        log.l('所有服务已停止');
+        log.s1.l(log.chalk.bold.bgMagenta(this.name), '所有服务已停止');
         this._status = RunningStatus.stopped;
         this.emit('stopped');
 
@@ -223,6 +235,6 @@ export class ServicesManager extends events.EventEmitter {
      * @memberof ServicesManager
      */
     onError(err: Error, service: ServiceModule) {
-        log.e(service.name, '发生错误：', err);
+        log.s1.e(`服务：${service.name}`, '发生错误：', err);
     }
 }
