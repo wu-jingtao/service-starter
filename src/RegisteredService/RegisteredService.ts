@@ -1,10 +1,11 @@
 import { ServiceModule } from "../ServiceModule/ServiceModule";
 import { ServicesManager } from "../ServicesManager/ServicesManager";
+import { RunningStatus } from "../RunningStatus";
 import { log } from "../Log";
 
 /**
  * 对注册了的服务进行一层封装，便于ServicesManager使用。
- * 对于注册服务的异常与状态进行处理。
+ * 对于注册服务的生命周期进行管理。
  * 
  * @class RegisteredService
  */
@@ -44,14 +45,12 @@ export class RegisteredService {
     readonly service: ServiceModule;
 
     /**
-     * 服务是否已启动
-     * 
-     * @type {boolean}
+     * 服务的运行状态
      */
-    public get isStarted(): boolean {
-        return this._isStarted;
+    public get status() {
+        return this._status;
     }
-    private _isStarted: boolean = false;
+    private _status: RunningStatus = RunningStatus.stopped;
 
     constructor(service: ServiceModule, manager: ServicesManager) {
         this.service = service;
@@ -62,66 +61,78 @@ export class RegisteredService {
     }
 
     /**
-     * 启动服务。成功返回true，失败返回false   
-     * 这个方法不会抛出异常
+     * 启动服务。成功返回void，失败返回Error。    
+     * 如果抛出异常则一定是该程序内部逻辑错误      
+     * 这个方法仅供内部使用。
      * 
-     * @returns {Promise<boolean>} 
+     * @returns {Promise<Error | void>} 
      */
-    async start(): Promise<boolean> {
-        //确保不会重复启动
-        if (this._isStarted) return true;
+    async _start(): Promise<Error | void> {
+        //确保只有在stopped的情况下才能执行_start
+        if (this._status !== RunningStatus.stopped) {
+            throw new Error(`[服务：${this.service.name}] 在还未完全关闭的情况下又再次被启动。当前的状态为：${RunningStatus[this._status]}`);
+        }
 
         try {
             log.starting('开始启动', this.service.name);
+            this._status = RunningStatus.starting;
+
             await this.service.onStart();
             this.service.on('error', this._errorListener);
-            this._isStarted = true;
-            log.started('成功启动', this.service.name);
 
-            return true;
+            log.started('成功启动', this.service.name);
+            this._status = RunningStatus.running;
         } catch (err) {
             log.startFailed('启动失败', this.service.name, err);
-            await this.stop(true);
+            await this._stop();
 
-            return false;
+            return err;
         }
     }
 
     /**
-     * 停止服务。这个方法不会抛出异常
-     * 
-     * @param {boolean} [force=false] 是否强制执行
+     * 停止服务。    
+     * 如果抛出异常则一定是该程序内部逻辑错误      
+     * 这个方法仅供内部使用。
      */
-    async stop(force = false) {
+    async _stop() {
         //确保不会重复停止
-        if (force === false && this._isStarted === false) return;
+        if (this._status === RunningStatus.stopping || this._status === RunningStatus.stopped) {
+            throw new Error(`[服务：${this.service.name}] 在处于正在停止或已停止的状态下又再次被停止。当前的状态为：${RunningStatus[this._status]}`);
+        }
 
         try {
             log.stopping('开始停止', this.service.name);
+            this._status = RunningStatus.stopping;
+
             await this.service.onStop();
+
             log.stopped('成功停止', this.service.name);
         } catch (err) {
             log.stopFailed('停止失败', this.service.name, err);
         } finally {
-            this._isStarted = false;
+            this._status = RunningStatus.stopped;
             this.service.removeListener('error', this._errorListener);
         }
     }
 
     /**
-     * 健康检查。这个方法不抛出异常
+     * 健康检查。
+     * 如果抛出异常则一定是该程序内部逻辑错误      
+     * 这个方法仅供内部使用。
      * 
      * @returns {(Promise<Error | void>)} 健康检查出现的错误
-     * @memberof RegisteredService
      */
-    async healthCheck(): Promise<Error | void> {
+    async _healthCheck(): Promise<Error | void> {
         // 未启动时直接算是健康
-        if (this._isStarted === false) return;
+        if (this._status !== RunningStatus.running) {
+            throw new Error(`[服务：${this.service.name}] 在非运行状态下进行了健康检查。当前的状态为：${RunningStatus[this._status]}`);
+        }
 
         try {
             await this.service.onHealthChecking();
         } catch (err) {
-            log.w('服务', this.service.name, '的运行状况异常：', err);
+            log.w(`[服务：${this.service.name}]`, '运行状况异常：', err);
             return err;
         }
     }
