@@ -124,7 +124,7 @@ export class RegisteredService {
      * @returns {(Promise<Error | void>)} 健康检查出现的错误
      */
     async _healthCheck(): Promise<Error | void> {
-        // 未启动时直接算是健康
+        // 确保只检查运行状况下的健康状态
         if (this._status !== RunningStatus.running) {
             throw new Error(`[服务：${this.service.name}] 在非运行状态下进行了健康检查。当前的状态为：${RunningStatus[this._status]}`);
         }

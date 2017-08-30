@@ -53,8 +53,14 @@ export class ServicesManager extends events.EventEmitter {
 
             if (config.stopOnHaveUnhandledRejection !== false) {
                 //确保不会重复关闭
-                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
-                    this.stop(1);
+                if (this._status !== RunningStatus.stopping) {
+                    //如果服务还未启动过
+                    if (this._status === RunningStatus.stopped) {
+                        process.exit(1);
+                    } else {
+                        this.stop(1);
+                    }
+                }
             }
         });
 
@@ -62,25 +68,37 @@ export class ServicesManager extends events.EventEmitter {
             log.e('程序出现未捕捉异常：', err);
 
             if (config.stopOnHaveUncaughtException !== false) {
-                //确保不会重复关闭
-                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
-                    this.stop(1);
+                if (this._status !== RunningStatus.stopping) {
+                    if (this._status === RunningStatus.stopped) {
+                        process.exit(1);
+                    } else {
+                        this.stop(1);
+                    }
+                }
             }
         });
 
         process.on('SIGTERM', () => {
             if (config.stopOnHaveSIGTERM !== false) {
-                //确保不会重复关闭
-                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
-                    this.stop();
+                if (this._status !== RunningStatus.stopping) {
+                    if (this._status === RunningStatus.stopped) {
+                        process.exit();
+                    } else {
+                        this.stop();
+                    }
+                }
             }
         });
 
         process.on('SIGINT', () => {
             if (config.stopOnHaveSIGINT !== false) {
-                //确保不会重复关闭
-                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
-                    this.stop();
+                if (this._status !== RunningStatus.stopping) {
+                    if (this._status === RunningStatus.stopped) {
+                        process.exit();
+                    } else {
+                        this.stop();
+                    }
+                }
             }
         });
 
@@ -89,7 +107,7 @@ export class ServicesManager extends events.EventEmitter {
             //要被监听的端口
             const port = "/tmp/service_starter_health_checking.sock";
 
-            //删除之前的接口，避免被占用
+            //删除之前的端口，避免被占用
             fs.removeSync(port);
 
             http.createServer(async (req, res) => {
@@ -144,8 +162,7 @@ export class ServicesManager extends events.EventEmitter {
 
             //不为空则表示启动失败
             if (failed !== undefined) {
-                this.stop(1);
-                return;
+                return this.stop(2);
             }
         }
 
@@ -158,7 +175,7 @@ export class ServicesManager extends events.EventEmitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后将会退出程序。
      * 当所有服务都停止后出发stopped事件
      * 
-     * @param exitCode 程序退出状态码。 1是系统错误
+     * @param exitCode 程序退出状态码。 1是系统错误 2用户服务错误
      */
     stop = (exitCode = 0) => setImmediate(this._stop.bind(this), exitCode);
     private async _stop(exitCode: number) {
