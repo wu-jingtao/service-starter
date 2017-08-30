@@ -3,7 +3,7 @@ import events = require('events');
 import { RegisteredService } from '../RegisteredService/RegisteredService';
 import { ServiceModule } from "../ServiceModule/ServiceModule";
 import { ServicesManagerConfig } from "./ServicesManagerConfig";
-import { ServicesManagerStatus } from "./ServicesManagerStatus";
+import { RunningStatus } from "../RunningStatus";
 /**
  * 服务管理器
  *
@@ -16,7 +16,7 @@ export declare class ServicesManager extends events.EventEmitter {
     /**
      * 运行状态
      */
-    readonly status: ServicesManagerStatus;
+    readonly status: RunningStatus;
     private _status;
     /**
      * ServicesManager 的名称，默认是类名。
@@ -53,6 +53,7 @@ export declare class ServicesManager extends events.EventEmitter {
     registerService(serviceModule: ServiceModule): void;
     /**
      * 服务运行过程中的错误处理方法。服务启动或关闭过程中产生的错误不会触发该方法。
+     * 注意：onError中的代码不应出现错误，如果onError的中的代码出现错误将直接导致程序关闭。
      *
      * @param {Error} err
      * @param {ServiceModule} service 发生错误的服务实例

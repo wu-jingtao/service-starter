@@ -1,8 +1,9 @@
 import { ServiceModule } from "../ServiceModule/ServiceModule";
 import { ServicesManager } from "../ServicesManager/ServicesManager";
+import { RunningStatus } from "../RunningStatus";
 /**
  * 对注册了的服务进行一层封装，便于ServicesManager使用。
- * 对于注册服务的异常与状态进行处理。
+ * 对于注册服务的生命周期进行管理。
  *
  * @class RegisteredService
  */
@@ -24,31 +25,31 @@ export declare class RegisteredService {
      */
     readonly service: ServiceModule;
     /**
-     * 服务是否已启动
-     *
-     * @type {boolean}
+     * 服务的运行状态
      */
-    readonly isStarted: boolean;
-    private _isStarted;
+    readonly status: RunningStatus;
+    private _status;
     constructor(service: ServiceModule, manager: ServicesManager);
     /**
-     * 启动服务。成功返回true，失败返回false
-     * 这个方法不会抛出异常
+     * 启动服务。成功返回void，失败返回Error。
+     * 如果抛出异常则一定是该程序内部逻辑错误
+     * 这个方法仅供内部使用。
      *
-     * @returns {Promise<boolean>}
+     * @returns {Promise<Error | void>}
      */
-    start(): Promise<boolean>;
+    _start(): Promise<Error | void>;
     /**
-     * 停止服务。这个方法不会抛出异常
-     *
-     * @param {boolean} [force=false] 是否强制执行
+     * 停止服务。
+     * 如果抛出异常则一定是该程序内部逻辑错误
+     * 这个方法仅供内部使用。
      */
-    stop(force?: boolean): Promise<void>;
+    _stop(): Promise<void>;
     /**
-     * 健康检查。这个方法不抛出异常
+     * 健康检查。
+     * 如果抛出异常则一定是该程序内部逻辑错误
+     * 这个方法仅供内部使用。
      *
      * @returns {(Promise<Error | void>)} 健康检查出现的错误
-     * @memberof RegisteredService
      */
-    healthCheck(): Promise<Error | void>;
+    _healthCheck(): Promise<Error | void>;
 }

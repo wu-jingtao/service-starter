@@ -1,10 +1,10 @@
 /**
- * ServicesManager的运行状态
+ * 标记程序的运行状态
  *
  * @export
  * @enum {number}
  */
-export declare enum ServicesManagerStatus {
+export declare enum RunningStatus {
     /**
      *  已停止
      */
