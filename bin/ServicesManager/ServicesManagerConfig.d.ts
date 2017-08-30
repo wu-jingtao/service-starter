@@ -30,7 +30,7 @@ export interface ServicesManagerConfig {
     */
     stopOnHaveSIGINT?: boolean;
     /**
-     * 是否启动健康检查(默认true,启动)
+     * 是否启动Docker健康检查(默认true,启动)
      *
      * @type {boolean}
      */

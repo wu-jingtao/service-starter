@@ -1,5 +1,5 @@
 import expect = require('expect.js');
-import { ServicesManager } from "../bin/index";
+import { ServicesManager, log } from "../bin/index";
 import child_process = require('child_process');
 
 import { TestService1, TestService2 } from "./testClass/TestService";
@@ -21,9 +21,9 @@ describe('开始测试ServicesManager与ServiceModule', function () {
 
     it('测试healthChecking', function (done) {
         this.timeout(10000);
-        
-        const cmd = "curl -s --no-buffer -XGET --unix-socket /tmp/service_starter_health_checking.sock http://";
-        
+
+        const cmd = "curl -s --no-buffer -XGET --unix-socket /tmp/service_starter_health_checking.sock http://1";
+
         child_process.exec(cmd, (err, stdout, stderr) => {
             if (stderr.trim() != '') done(new Error('请求healthChecking接口时发生错误:' + stderr))
             else if (err) done(new Error('请求healthChecking接口时发生错误:' + err))
@@ -32,10 +32,11 @@ describe('开始测试ServicesManager与ServiceModule', function () {
 
         //启动3秒后TestService2的状态会变为unhealthy，TestService1保持不变。
         setTimeout(() => {
+            log.l('接下来显示一个错误才是正确的');
             child_process.exec(cmd, (err, stdout, stderr) => {
                 if (stderr.trim() != '') done(new Error('请求healthChecking接口时发生错误:' + stderr))
                 else if (err) done(new Error('请求healthChecking接口时发生错误:' + err))
-                else if (stdout.trim() != '1') done(new Error('healthChecking的内部处理逻辑存在问题，第二次请求应当返回1，而实际返回了' + stdout));
+                else if (stdout.trim() == '0') done(new Error('healthChecking的内部处理逻辑存在问题，第二次请求应当报错，而实际返回了' + stdout));
                 else done();
             });
         }, 5000);

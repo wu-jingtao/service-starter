@@ -1,4 +1,4 @@
-import { ServiceModule, log, HealthStatus } from "../../bin/index";
+import { ServiceModule, log } from "../../bin/index";
 
 export class TestService1 extends ServiceModule {
 
@@ -17,13 +17,13 @@ export class TestService2 extends ServiceModule {
         return '测试类2';
     }
 
-    status = HealthStatus.success;
+    status = 0;
 
     async onStart(): Promise<void> {
         log.l(this.name);
-        
+
         setTimeout(() => {
-            this.status = HealthStatus.unhealthy;
+            this.status = 1;
         }, 3000);
     }
 
@@ -32,6 +32,6 @@ export class TestService2 extends ServiceModule {
     }
 
     async onHealthChecking() {
-        return this.status;
+        if (this.status === 1) throw new Error('*1*');
     }
 }

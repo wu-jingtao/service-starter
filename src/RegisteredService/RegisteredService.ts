@@ -62,7 +62,7 @@ export class RegisteredService {
     }
 
     /**
-     * 启动服务。成功返回true，失败返回false
+     * 启动服务。成功返回true，失败返回false   
      * 这个方法不会抛出异常
      * 
      * @returns {Promise<boolean>} 
@@ -76,7 +76,7 @@ export class RegisteredService {
             await this.service.onStart();
             this.service.on('error', this._errorListener);
             this._isStarted = true;
-            log.started('启动成功', this.service.name);
+            log.started('成功启动', this.service.name);
 
             return true;
         } catch (err) {
@@ -99,7 +99,7 @@ export class RegisteredService {
         try {
             log.stopping('开始停止', this.service.name);
             await this.service.onStop();
-            log.stopped('停止成功', this.service.name);
+            log.stopped('成功停止', this.service.name);
         } catch (err) {
             log.stopFailed('停止失败', this.service.name, err);
         } finally {

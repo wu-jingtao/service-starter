@@ -6,6 +6,7 @@ import { RegisteredService } from '../RegisteredService/RegisteredService';
 import { log } from '../Log';
 import { ServiceModule } from "../ServiceModule/ServiceModule";
 import { ServicesManagerConfig } from "./ServicesManagerConfig";
+import { ServicesManagerStatus } from "./ServicesManagerStatus";
 
 /**
  * 服务管理器
@@ -16,11 +17,16 @@ import { ServicesManagerConfig } from "./ServicesManagerConfig";
  */
 export class ServicesManager extends events.EventEmitter {
 
-    //是否已经启动
-    private _isStarted = false;
-
     //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
     private static _servicesManagerCreated = false;
+
+    /**
+     * 运行状态
+     */
+    get status() {
+        return this._status;
+    }
+    private _status: ServicesManagerStatus = ServicesManagerStatus.stopped;
 
     /**
      * ServicesManager 的名称，默认是类名。
@@ -79,7 +85,9 @@ export class ServicesManager extends events.EventEmitter {
             fs.removeSync(port);
 
             http.createServer(async (req, res) => {
-                //log.l('接收到健康检查请求');
+
+                //服务还未启动时直接返回成功
+                if (this._status !== ServicesManagerStatus.running) return res.end('0');
 
                 let result: [Error, RegisteredService] | undefined;
 
@@ -101,7 +109,7 @@ export class ServicesManager extends events.EventEmitter {
                 }
             }).listen(port, (err: Error) => {
                 if (err) {
-                    log.e(this.name, '健康检查服务启动失败：', err);
+                    log.e('ServicesManager：健康检查server启动失败：', err);
                     process.exit(1);
                 }
             });
@@ -113,69 +121,51 @@ export class ServicesManager extends events.EventEmitter {
      * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。     
      * 启动结束后会触发started事件
      */
-    start() {
+    start = () => setImmediate(this._start.bind(this)); //主要是为了等待构造函数中的事件绑定完成
+    private async _start() {
         //确保不会重复启动
-        if (this._isStarted !== false) return;
+        if (this._status === ServicesManagerStatus.starting || this._status === ServicesManagerStatus.running) return;
 
         log.l(this.name, '开始启动服务');
-        this._isStarted = true;
+        this._status = ServicesManagerStatus.starting;
 
-        (async () => {
-            for (let item of this._services.values()) {
-                //避免重复启动
-                if (item.isStarted === true) continue;
-
-                try {
-                    log.starting('开始启动', item.name);
-                    item.isStarted = true;
-                    await item.service.onStart();
-                    log.started('启动成功', item.name);
-                } catch (error) {
-                    log.startFailed('启动失败', item.name, error);
-                    this.stop(1);
-                    return;
-                }
+        for (let item of this.services.values()) {
+            const failed = await item.start();
+            if (failed === false) {
+                this.stop(1);
+                return;
             }
+        }
 
-            log.l('所有服务已启动');
-            this.emit('started');
-        })();
+        log.l('所有服务已启动');
+        this._status = ServicesManagerStatus.running;
+        this.emit('started');
     }
 
     /**
-     * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后程序将会被退出。
+     * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后将会退出程序。
      * 当所有服务都停止后出发stopped事件
      * 
-     * @param exitCode 程序退出状态码。 1是系统错误 2是用户ServiceModule的onError发出的‘stop’信号
+     * @param exitCode 程序退出状态码。 1是系统错误
      */
-    stop(exitCode = 0) {
+    stop = (exitCode = 0) => setImmediate(this._stop.bind(this), exitCode);
+    private async _stop(exitCode: number) {
         //确保不会重复关闭
-        if (this._isStarted !== true) return;
+        if (this._status === ServicesManagerStatus.stopped || this._status === ServicesManagerStatus.stopping) return;
 
         log.l(this.name, '开始停止服务');
-        this._isStarted = false;
+        this._status = ServicesManagerStatus.stopping;
 
-        (async () => {
-            for (let item of Array.from(this._services.values()).reverse()) {
-                //只关闭已启动了的服务
-                if (item.isStarted === false) continue;
+        for (let item of Array.from(this.services.values()).reverse()) {
+            await item.stop();
+        }
 
-                try {
-                    log.stopping('开始停止', item.name);
-                    item.isStarted = false;
-                    await item.service.onStop();
-                    log.stopped('停止成功', item.name);
-                } catch (error) {
-                    log.stopFailed('停止失败', item.name, error);
-                }
-            }
+        log.l('所有服务已停止');
+        this._status = ServicesManagerStatus.stopped;
+        this.emit('stopped');
 
-            log.l('所有服务已停止');
-            this.emit('stopped');
-
-            //退出服务
-            process.exit(exitCode);
-        })();
+        //退出服务
+        process.exit(exitCode);
     }
 
     /**
@@ -185,10 +175,10 @@ export class ServicesManager extends events.EventEmitter {
      * @memberof ServicesManager
      */
     registerService(serviceModule: ServiceModule) {
-        if (this._services.has(serviceModule.name)) {
+        if (this.services.has(serviceModule.name)) {
             throw new Error(`服务'${serviceModule.name}'已注册过了`);
         } else {
-            this._services.set(serviceModule.name, new RegisteredService(serviceModule, this));
+            this.services.set(serviceModule.name, new RegisteredService(serviceModule, this));
         }
     }
 
