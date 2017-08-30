@@ -6,7 +6,7 @@ import { RegisteredService } from '../RegisteredService/RegisteredService';
 import { log } from '../Log';
 import { ServiceModule } from "../ServiceModule/ServiceModule";
 import { ServicesManagerConfig } from "./ServicesManagerConfig";
-import { ServicesManagerStatus } from "./ServicesManagerStatus";
+import { RunningStatus } from "../RunningStatus";
 
 /**
  * 服务管理器
@@ -17,7 +17,7 @@ import { ServicesManagerStatus } from "./ServicesManagerStatus";
  */
 export class ServicesManager extends events.EventEmitter {
 
-    //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
+    //ServicesManager是否已经创建了（一个容器只允许创建一个ServicesManager）
     private static _servicesManagerCreated = false;
 
     /**
@@ -26,7 +26,7 @@ export class ServicesManager extends events.EventEmitter {
     get status() {
         return this._status;
     }
-    private _status: ServicesManagerStatus = ServicesManagerStatus.stopped;
+    private _status: RunningStatus = RunningStatus.stopped;
 
     /**
      * ServicesManager 的名称，默认是类名。
@@ -52,7 +52,9 @@ export class ServicesManager extends events.EventEmitter {
             log.e('程序出现未捕捉Promise异常：', err);
 
             if (config.stopOnHaveUnhandledRejection !== false) {
-                this.stop(1);
+                //确保不会重复关闭
+                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
+                    this.stop(1);
             }
         });
 
@@ -60,19 +62,25 @@ export class ServicesManager extends events.EventEmitter {
             log.e('程序出现未捕捉异常：', err);
 
             if (config.stopOnHaveUncaughtException !== false) {
-                this.stop(1);
+                //确保不会重复关闭
+                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
+                    this.stop(1);
             }
         });
 
         process.on('SIGTERM', () => {
             if (config.stopOnHaveSIGTERM !== false) {
-                this.stop();
+                //确保不会重复关闭
+                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
+                    this.stop();
             }
         });
 
         process.on('SIGINT', () => {
             if (config.stopOnHaveSIGINT !== false) {
-                this.stop();
+                //确保不会重复关闭
+                if (this._status !== RunningStatus.stopping && this._status !== RunningStatus.stopped)
+                    this.stop();
             }
         });
 
@@ -86,14 +94,14 @@ export class ServicesManager extends events.EventEmitter {
 
             http.createServer(async (req, res) => {
 
-                //服务还未启动时直接返回成功
-                if (this._status !== ServicesManagerStatus.running) return res.end('0');
+                //服务还未处于running时直接返回成功
+                if (this._status !== RunningStatus.running) return res.end('0');
 
                 let result: [Error, RegisteredService] | undefined;
 
                 //检查每一个服务的健康状况
                 for (let item of this.services.values()) {
-                    const err = await item.healthCheck();
+                    const err = await item._healthCheck();
 
                     //不为空就表示有问题了
                     if (err !== undefined) {
@@ -123,22 +131,26 @@ export class ServicesManager extends events.EventEmitter {
      */
     start = () => setImmediate(this._start.bind(this)); //主要是为了等待构造函数中的事件绑定完成
     private async _start() {
-        //确保不会重复启动
-        if (this._status === ServicesManagerStatus.starting || this._status === ServicesManagerStatus.running) return;
+        //确保只有在stopped的情况下才能执行start
+        if (this._status !== RunningStatus.stopped) {
+            throw new Error(`[服务管理器：${this.name}] 在还未完全关闭的情况下又再次被启动。当前的状态为：${RunningStatus[this._status]}`);
+        }
 
         log.l(this.name, '开始启动服务');
-        this._status = ServicesManagerStatus.starting;
+        this._status = RunningStatus.starting;
 
         for (let item of this.services.values()) {
-            const failed = await item.start();
-            if (failed === false) {
+            const failed = await item._start();
+
+            //不为空则表示启动失败
+            if (failed !== undefined) {
                 this.stop(1);
                 return;
             }
         }
 
         log.l('所有服务已启动');
-        this._status = ServicesManagerStatus.running;
+        this._status = RunningStatus.running;
         this.emit('started');
     }
 
@@ -150,18 +162,21 @@ export class ServicesManager extends events.EventEmitter {
      */
     stop = (exitCode = 0) => setImmediate(this._stop.bind(this), exitCode);
     private async _stop(exitCode: number) {
-        //确保不会重复关闭
-        if (this._status === ServicesManagerStatus.stopped || this._status === ServicesManagerStatus.stopping) return;
+        //确保不会重复停止
+        if (this._status === RunningStatus.stopping || this._status === RunningStatus.stopped) {
+            throw new Error(`[服务管理器：${this.name}] 在处于正在停止或已停止的状态下又再次被停止。当前的状态为：${RunningStatus[this._status]}`);
+        }
 
         log.l(this.name, '开始停止服务');
-        this._status = ServicesManagerStatus.stopping;
+        this._status = RunningStatus.stopping;
 
         for (let item of Array.from(this.services.values()).reverse()) {
-            await item.stop();
+            if (item.status !== RunningStatus.stopping && item.status !== RunningStatus.stopped)
+                await item._stop();
         }
 
         log.l('所有服务已停止');
-        this._status = ServicesManagerStatus.stopped;
+        this._status = RunningStatus.stopped;
         this.emit('stopped');
 
         //退出服务
@@ -184,6 +199,7 @@ export class ServicesManager extends events.EventEmitter {
 
     /**
      * 服务运行过程中的错误处理方法。服务启动或关闭过程中产生的错误不会触发该方法。
+     * 注意：onError中的代码不应出现错误，如果onError的中的代码出现错误将直接导致程序关闭。
      * 
      * @param {Error} err 
      * @param {ServiceModule} service 发生错误的服务实例
