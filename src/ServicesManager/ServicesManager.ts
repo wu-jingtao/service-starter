@@ -2,10 +2,9 @@ import events = require('events');
 import http = require('http');
 import fs = require('fs-extra');
 
-import { RegisteredService } from './RegisteredService';
+import { RegisteredService } from '../RegisteredService/RegisteredService';
 import { log } from '../Log';
 import { ServiceModule } from "../ServiceModule/ServiceModule";
-import { HealthStatus } from "../ServiceModule/HealthStatus";
 import { ServicesManagerConfig } from "./ServicesManagerConfig";
 
 /**
@@ -17,8 +16,11 @@ import { ServicesManagerConfig } from "./ServicesManagerConfig";
  */
 export class ServicesManager extends events.EventEmitter {
 
-    private _isStarted = false;    //是否已经启动
-    private static _servicesManagerCreated = false; //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
+    //是否已经启动
+    private _isStarted = false;
+
+    //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
+    private static _servicesManagerCreated = false;
 
     /**
      * ServicesManager 的名称，默认是类名。
@@ -32,7 +34,7 @@ export class ServicesManager extends events.EventEmitter {
      * 
      * key是服务名称
      */
-    readonly _services = new Map<string, RegisteredService>()
+    readonly services = new Map<string, RegisteredService>()
 
     constructor(config: ServicesManagerConfig = {}) {
         super();
@@ -78,28 +80,25 @@ export class ServicesManager extends events.EventEmitter {
 
             http.createServer(async (req, res) => {
                 //log.l('接收到健康检查请求');
-                let result = HealthStatus.success;
+
+                let result: [Error, RegisteredService] | undefined;
 
                 //检查每一个服务的健康状况
-                for (let item of this._services.values()) {
-                    //跳过未启动的服务
-                    if (!item.isStarted) continue;
+                for (let item of this.services.values()) {
+                    const err = await item.healthCheck();
 
-                    try {
-                        const status = await item.service.onHealthChecking();
-                        if (status != HealthStatus.success) {
-                            log.w('服务', item.name, '的运行健康状况出现不正常：', status);
-                            result = status;
-                            break;
-                        }
-                    } catch (error) {
-                        result = HealthStatus.unhealthy;
-                        log.e('服务', item.name, '在进行健康检查时发生异常', error);
+                    //不为空就表示有问题了
+                    if (err !== undefined) {
+                        result = [err, item];
                         break;
                     }
                 }
 
-                res.end(result.toString());
+                if (result === undefined) {
+                    res.end('0');
+                } else {
+                    res.end(`[${result[1].service.name}]  ${result[0]}`);
+                }
             }).listen(port, (err: Error) => {
                 if (err) {
                     log.e(this.name, '健康检查服务启动失败：', err);
@@ -113,8 +112,6 @@ export class ServicesManager extends events.EventEmitter {
      * 启动所有注册的服务。按照注册的先后顺序来启动服务。先注册的服务先启动。     
      * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。     
      * 启动结束后会触发started事件
-     * 
-     * @memberof ServicesManager
      */
     start() {
         //确保不会重复启动
