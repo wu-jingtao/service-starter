@@ -33,6 +33,20 @@ export abstract class ServiceModule extends events.EventEmitter {
     private _servicesManager: ServicesManager;
 
     /**
+     * 简化对其他注册服务的获取
+     */
+    readonly services: any = new Proxy(this, {
+        get(target, property: string) {
+            if (target._servicesManager != null) {
+                const rs = target._servicesManager.services.get(property);
+                if (rs !== undefined) {
+                    return rs.service;
+                }
+            }
+        }
+    });
+
+    /**
      * 启动服务
      * 注意：启动过程中出现的错误直接通过reject()来处理。
      * 启动之后(运行过程中)出现的错误，通过this.emit('error')来处理。

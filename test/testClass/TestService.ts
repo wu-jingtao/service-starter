@@ -2,6 +2,9 @@ import { ServiceModule, log } from "../../bin/index";
 
 export class TestService1 extends ServiceModule {
 
+    // 测试ServiceModule的service属性
+    testServiceProperty = 'abc';
+
     async onStart(): Promise<void> {
         log.l(this.name);
     }
@@ -25,6 +28,10 @@ export class TestService2 extends ServiceModule {
         setTimeout(() => {
             this.status = 1;
         }, 3000);
+
+        if(this.services.TestService1.testServiceProperty !== 'abc'){
+            throw new Error('ServiceModule的service属性存在问题！');
+        }
     }
 
     async onStop() {
