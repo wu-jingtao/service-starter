@@ -86,6 +86,8 @@ export class ServicesManager extends events.EventEmitter {
                     } else {
                         this.stop();
                     }
+                } else {
+                    console.log('正在停止程序，请稍后。。。');
                 }
             }
         });
@@ -98,6 +100,8 @@ export class ServicesManager extends events.EventEmitter {
                     } else {
                         this.stop();
                     }
+                } else {
+                    console.log('正在停止程序，请稍后。。。');
                 }
             }
         });
@@ -220,7 +224,7 @@ export class ServicesManager extends events.EventEmitter {
      */
     registerService(serviceModule: ServiceModule) {
         if (this.services.has(serviceModule.name)) {
-            throw new Error(`服务'${serviceModule.name}'已注册过了`);
+            throw new Error(`服务：'${serviceModule.name}'已注册过了`);
         } else {
             this.services.set(serviceModule.name, new RegisteredService(serviceModule, this));
         }

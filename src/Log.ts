@@ -48,7 +48,7 @@ export const log = {
          * @param {...any[]} args 
          */
         l(n: number, ...args: any[]) {
-            log.l(this.format(n, ...args));
+            log.l(log.sn.format(n, ...args));
         },
 
         /**
@@ -58,7 +58,7 @@ export const log = {
          * @param {...any[]} args 
          */
         w(n: number, ...args: any[]) {
-            log.w(this.format(n, ...args));
+            log.w(log.sn.format(n, ...args));
         },
 
         /**
@@ -68,7 +68,7 @@ export const log = {
          * @param {...any[]} args 
          */
         e(n: number, ...args: any[]) {
-            log.e(this.format(n, ...args));
+            log.e(log.sn.format(n, ...args));
         },
 
         /**
