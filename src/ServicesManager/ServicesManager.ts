@@ -217,16 +217,16 @@ export class ServicesManager extends events.EventEmitter {
     }
 
     /**
-     * 注册服务
+     * 注册服务。注册服务的名称是以类名为准
      * 
      * @param {ServiceModule} serviceModule 服务模块实例
      * @memberof ServicesManager
      */
     registerService(serviceModule: ServiceModule) {
-        if (this.services.has(serviceModule.name)) {
+        if (this.services.has(serviceModule.constructor.name)) {
             throw new Error(`服务：'${serviceModule.name}'已注册过了`);
         } else {
-            this.services.set(serviceModule.name, new RegisteredService(serviceModule, this));
+            this.services.set(serviceModule.constructor.name, new RegisteredService(serviceModule, this));
         }
     }
 

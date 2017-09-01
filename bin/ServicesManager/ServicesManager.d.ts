@@ -45,7 +45,7 @@ export declare class ServicesManager extends events.EventEmitter {
     stop: (exitCode?: number) => any;
     private _stop(exitCode);
     /**
-     * 注册服务
+     * 注册服务。注册服务的名称是以类名为准
      *
      * @param {ServiceModule} serviceModule 服务模块实例
      * @memberof ServicesManager
