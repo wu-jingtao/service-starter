@@ -35,10 +35,10 @@ export abstract class ServiceModule extends events.EventEmitter {
     /**
      * 简化对其他注册服务的获取
      */
-    readonly services: any = new Proxy(this, {
-        get(target, property: string) {
-            if (target._servicesManager != null) {
-                const rs = target._servicesManager.services.get(property);
+    readonly services: any = new Proxy({}, {
+        get: (_, property: string) => {
+            if (this._servicesManager != null) {
+                const rs = this._servicesManager.services.get(property);
                 if (rs !== undefined) {
                     return rs.service;
                 }

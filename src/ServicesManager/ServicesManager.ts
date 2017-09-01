@@ -42,7 +42,7 @@ export class ServicesManager extends events.EventEmitter {
      */
     readonly services = new Map<string, RegisteredService>()
 
-    constructor(config: ServicesManagerConfig = {}) {
+    constructor(private readonly _config: ServicesManagerConfig = {}) {
         super();
 
         if (ServicesManager._servicesManagerCreated) throw new Error(`${this.name}已经被创建了`);
@@ -51,7 +51,7 @@ export class ServicesManager extends events.EventEmitter {
         process.on('unhandledRejection', (err: Error) => {
             log.s1.e('程序', '出现未捕捉Promise异常：', err);
 
-            if (config.stopOnHaveUnhandledRejection !== false) {
+            if (_config.stopOnHaveUnhandledRejection !== false) {
                 //确保不会重复关闭
                 if (this._status !== RunningStatus.stopping) {
                     //如果服务还未启动过
@@ -67,7 +67,7 @@ export class ServicesManager extends events.EventEmitter {
         process.on('uncaughtException', (err: Error) => {
             log.s1.e('程序', '出现未捕捉异常：', err);
 
-            if (config.stopOnHaveUncaughtException !== false) {
+            if (_config.stopOnHaveUncaughtException !== false) {
                 if (this._status !== RunningStatus.stopping) {
                     if (this._status === RunningStatus.stopped) {
                         process.exit(1);
@@ -79,53 +79,40 @@ export class ServicesManager extends events.EventEmitter {
         });
 
         let forceClose = false;     //用于标记是否强制退出程序
+        const signalClose = () => {
+            if (this._status !== RunningStatus.stopping) {
+                if (this._status === RunningStatus.stopped) {
+                    process.exit();
+                } else {
+                    this.stop();
+                }
+            } else {
+                if (forceClose === false) {
+                    console.log('正在停止程序，请稍后。。。', log.chalk.gray('（如果要强制退出，请在3秒钟之内再次点击）'));
+                    forceClose = true;
+                    setTimeout(function () {
+                        forceClose = false;
+                    }, 3000);
+                } else {
+                    process.exit();
+                }
+            }
+        };
 
         process.on('SIGTERM', () => {
-            if (config.stopOnHaveSIGTERM !== false) {
-                if (this._status !== RunningStatus.stopping) {
-                    if (this._status === RunningStatus.stopped) {
-                        process.exit();
-                    } else {
-                        this.stop();
-                    }
-                } else {
-                    if (forceClose === false) {
-                        console.log('正在停止程序，请稍后。。。', '（如果要强制退出，请在3秒钟之内再次点击）');
-                        forceClose = true;
-                        setTimeout(function () {
-                            forceClose = false;
-                        }, 3000);
-                    } else {
-                        process.exit();
-                    }
-                }
+            if (_config.stopOnHaveSIGTERM !== false) {
+                signalClose();
             }
         });
 
         process.on('SIGINT', () => {
-            if (config.stopOnHaveSIGINT !== false) {
-                if (this._status !== RunningStatus.stopping) {
-                    if (this._status === RunningStatus.stopped) {
-                        process.exit();
-                    } else {
-                        this.stop();
-                    }
-                } else {
-                    if (forceClose === false) {
-                        console.log('正在停止程序，请稍后。。。', '（如果要强制退出，请在3秒钟之内再次点击）');
-                        forceClose = true;
-                        setTimeout(function () {
-                            forceClose = false;
-                        }, 3000);
-                    } else {
-                        process.exit();
-                    }
-                }
+            if (_config.stopOnHaveSIGINT !== false) {
+                signalClose();
             }
         });
 
         //配置健康检查服务
-        if (config.startHealthChecking !== false) {
+        if (_config.startHealthChecking !== false) {
             //要被监听的端口
             const port = "/tmp/service_starter_health_checking.sock";
 
@@ -133,31 +120,32 @@ export class ServicesManager extends events.EventEmitter {
             fs.removeSync(port);
 
             http.createServer(async (req, res) => {
-
-                //服务还未处于running时直接返回成功
-                if (this._status !== RunningStatus.running) return res.end('0');
-
-                let result: [Error, RegisteredService] | undefined;
-
-                //检查每一个服务的健康状况
-                for (let item of this.services.values()) {
-                    const err = await item._healthCheck();
-
-                    //不为空就表示有问题了
-                    if (err !== undefined) {
-                        result = [err, item];
-                        break;
-                    }
-                }
-
-                if (result === undefined) {
-                    res.end('0');
+                if (this._status !== RunningStatus.running) {
+                    //服务还未处于running时直接返回当前的状态名称
+                    return res.end(RunningStatus[this._status]);
                 } else {
-                    res.end(`[${result[1].service.name}]  ${result[0]}`);
+                    let result: [Error, RegisteredService] | undefined;
+
+                    //检查每一个服务的健康状况
+                    for (let item of this.services.values()) {
+                        const err = await item._healthCheck();
+
+                        //不为空就表示有问题了
+                        if (err !== undefined) {
+                            result = [err, item];
+                            break;
+                        }
+                    }
+
+                    if (result === undefined) {
+                        res.end(RunningStatus[this._status]);
+                    } else {
+                        res.end(`[${result[1].service.name}]  ${result[0]}`);
+                    }
                 }
             }).listen(port, (err: Error) => {
                 if (err) {
-                    log.s1.e('ServicesManager', '健康检查server启动失败：', err);
+                    log.s1.e('ServicesManager', '健康检查服务器启动失败：', err);
                     process.exit(1);
                 }
             });
@@ -186,6 +174,9 @@ export class ServicesManager extends events.EventEmitter {
         this._status = RunningStatus.starting;
 
         for (let item of this.services.values()) {
+            //如果启动过程中出现了异常则就不再向下启动了（因为出现了异常之后_status或变为stopping）
+            if (this._status !== RunningStatus.starting) return;
+
             const failed = await item._start();
 
             //不为空则表示启动失败
@@ -203,7 +194,7 @@ export class ServicesManager extends events.EventEmitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后将会退出程序。
      * 当所有服务都停止后出发stopped事件
      * 
-     * @param exitCode 程序退出状态码。 1是系统错误 2用户服务错误
+     * @param exitCode 程序退出状态码。 1是系统错误  2用户服务错误
      */
     stop = (exitCode = 0) => setImmediate(this._stop.bind(this), exitCode);
     private async _stop(exitCode: number) {
@@ -231,7 +222,8 @@ export class ServicesManager extends events.EventEmitter {
         this.emit('stopped');
 
         //退出服务
-        process.exit(exitCode);
+        if (this._config.exitAfterStopped !== false)
+            process.exit(exitCode);
     }
 
     /**

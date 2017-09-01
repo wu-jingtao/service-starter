@@ -12,6 +12,7 @@ import { RunningStatus } from "../RunningStatus";
  * @extends {events.EventEmitter}
  */
 export declare class ServicesManager extends events.EventEmitter {
+    private readonly _config;
     private static _servicesManagerCreated;
     /**
      * 运行状态
@@ -28,7 +29,7 @@ export declare class ServicesManager extends events.EventEmitter {
      * key是服务名称
      */
     readonly services: Map<string, RegisteredService>;
-    constructor(config?: ServicesManagerConfig);
+    constructor(_config?: ServicesManagerConfig);
     /**
      * 启动所有注册的服务。按照注册的先后顺序来启动服务。先注册的服务先启动。
      * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。
@@ -40,7 +41,7 @@ export declare class ServicesManager extends events.EventEmitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后将会退出程序。
      * 当所有服务都停止后出发stopped事件
      *
-     * @param exitCode 程序退出状态码。 1是系统错误 2用户服务错误
+     * @param exitCode 程序退出状态码。 1是系统错误  2用户服务错误
      */
     stop: (exitCode?: number) => any;
     private _stop(exitCode);
