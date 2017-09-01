@@ -78,6 +78,8 @@ export class ServicesManager extends events.EventEmitter {
             }
         });
 
+        let forceClose = false;     //用于标记是否强制退出程序
+
         process.on('SIGTERM', () => {
             if (config.stopOnHaveSIGTERM !== false) {
                 if (this._status !== RunningStatus.stopping) {
@@ -87,7 +89,15 @@ export class ServicesManager extends events.EventEmitter {
                         this.stop();
                     }
                 } else {
-                    console.log('正在停止程序，请稍后。。。');
+                    if (forceClose === false) {
+                        console.log('正在停止程序，请稍后。。。', '（如果要强制退出，请在3秒钟之内再次点击）');
+                        forceClose = true;
+                        setTimeout(function () {
+                            forceClose = false;
+                        }, 3000);
+                    } else {
+                        process.exit();
+                    }
                 }
             }
         });
@@ -101,7 +111,15 @@ export class ServicesManager extends events.EventEmitter {
                         this.stop();
                     }
                 } else {
-                    console.log('正在停止程序，请稍后。。。');
+                    if (forceClose === false) {
+                        console.log('正在停止程序，请稍后。。。', '（如果要强制退出，请在3秒钟之内再次点击）');
+                        forceClose = true;
+                        setTimeout(function () {
+                            forceClose = false;
+                        }, 3000);
+                    } else {
+                        process.exit();
+                    }
                 }
             }
         });
