@@ -221,7 +221,7 @@ export class ServicesManager extends events.EventEmitter {
         this._status = RunningStatus.stopped;
         this.emit('stopped');
 
-        //退出服务
+        //是否退出服务
         if (this._config.exitAfterStopped !== false)
             process.exit(exitCode);
     }
