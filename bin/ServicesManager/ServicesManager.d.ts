@@ -35,7 +35,7 @@ export declare class ServicesManager extends events.EventEmitter {
      * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。
      * 启动结束后会触发started事件
      */
-    start: () => any;
+    start(): void;
     private _start();
     /**
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后将会退出程序。
@@ -43,7 +43,7 @@ export declare class ServicesManager extends events.EventEmitter {
      *
      * @param exitCode 程序退出状态码。 1是系统错误  2用户服务错误
      */
-    stop: (exitCode?: number) => any;
+    stop(exitCode?: number): void;
     private _stop(exitCode);
     /**
      * 注册服务。注册服务的名称是以类名为准

@@ -157,7 +157,10 @@ export class ServicesManager extends events.EventEmitter {
      * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。     
      * 启动结束后会触发started事件
      */
-    start = () => setImmediate(this._start.bind(this)); //主要是为了等待构造函数中的事件绑定完成
+    start() {
+        //主要是为了等待构造函数中的事件绑定完成
+        setImmediate(this._start.bind(this));
+    }
     private async _start() {
         //确保只有在stopped的情况下才能执行start
         if (this._status !== RunningStatus.stopped) {
@@ -196,7 +199,9 @@ export class ServicesManager extends events.EventEmitter {
      * 
      * @param exitCode 程序退出状态码。 1是系统错误  2用户服务错误
      */
-    stop = (exitCode = 0) => setImmediate(this._stop.bind(this), exitCode);
+    stop(exitCode = 0) {
+        setImmediate(this._stop.bind(this), exitCode);
+    }
     private async _stop(exitCode: number) {
         //确保不会重复停止
         if (this._status === RunningStatus.stopping || this._status === RunningStatus.stopped) {
