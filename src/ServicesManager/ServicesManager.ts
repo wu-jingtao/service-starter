@@ -166,7 +166,7 @@ export class ServicesManager extends events.EventEmitter {
         if (this._status !== RunningStatus.stopped) {
             throw new Error(
                 log.s1.format(
-                    `服务管理器：${this.name}`,
+                    `${this.name}`,
                     '在还未完全关闭的情况下又再次被启动。',
                     `当前的状态为：${RunningStatus[this._status]}`
                 )
@@ -207,7 +207,7 @@ export class ServicesManager extends events.EventEmitter {
         if (this._status === RunningStatus.stopping || this._status === RunningStatus.stopped) {
             throw new Error(
                 log.s1.format(
-                    `服务管理器：${this.name}`,
+                    `${this.name}`,
                     '在处于正在停止或已停止的状态下又再次被停止。',
                     `当前的状态为：${RunningStatus[this._status]}`
                 )

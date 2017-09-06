@@ -80,16 +80,16 @@ export class RegisteredService {
         }
 
         try {
-            log.s1.l(log.chalk.blue('服务：开始启动'), this.service.name);
+            log.s1.l(log.chalk.blue('开始启动'), this.service.name);
             this._status = RunningStatus.starting;
 
             await this.service.onStart();
             this.service.on('error', this._errorListener);
 
-            log.s1.l(log.chalk.green('服务：成功启动'), this.service.name);
+            log.s1.l(log.chalk.green('成功启动'), this.service.name);
             this._status = RunningStatus.running;
         } catch (err) {
-            log.s1.e(log.chalk.red('服务：启动失败'), this.service.name, err);
+            log.s1.e(log.chalk.red('启动失败'), this.service.name, err);
             await this._stop();
 
             return err;
@@ -114,14 +114,14 @@ export class RegisteredService {
         }
 
         try {
-            log.s1.l(log.chalk.blue('服务：开始停止'), this.service.name);
+            log.s1.l(log.chalk.blue('开始停止'), this.service.name);
             this._status = RunningStatus.stopping;
 
             await this.service.onStop();
 
-            log.s1.l(log.chalk.green('服务：成功停止'), this.service.name);
+            log.s1.l(log.chalk.green('成功停止'), this.service.name);
         } catch (err) {
-            log.s1.e(log.chalk.red('服务：停止失败'), this.service.name, err);
+            log.s1.e(log.chalk.red('停止失败'), this.service.name, err);
         } finally {
             this._status = RunningStatus.stopped;
             this.service.removeListener('error', this._errorListener);
