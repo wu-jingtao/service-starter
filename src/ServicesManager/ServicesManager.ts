@@ -20,28 +20,6 @@ export class ServicesManager extends events.EventEmitter {
     //ServicesManager是否已经创建了（一个容器只允许创建一个ServicesManager）
     private static _servicesManagerCreated = false;
 
-    /**
-     * 运行状态
-     */
-    get status() {
-        return this._status;
-    }
-    private _status: RunningStatus = RunningStatus.stopped;
-
-    /**
-     * ServicesManager 的名称，默认是类名。
-     */
-    get name(): string {
-        return this.constructor.name;
-    }
-
-    /**
-     * 注册的服务列表。(服务只应当通过registerService来进行注册)
-     * 
-     * key是服务名称
-     */
-    readonly services = new Map<string, RegisteredService>()
-
     constructor(private readonly _config: ServicesManagerConfig = {}) {
         super();
 
@@ -126,16 +104,6 @@ export class ServicesManager extends events.EventEmitter {
                 } else {
                     let result: [Error, RegisteredService] | undefined;
 
-                    //检查每一个服务的健康状况
-                    for (let item of this.services.values()) {
-                        const err = await item._healthCheck();
-
-                        //不为空就表示有问题了
-                        if (err !== undefined) {
-                            result = [err, item];
-                            break;
-                        }
-                    }
 
                     if (result === undefined) {
                         res.end(RunningStatus[this._status]);
@@ -152,46 +120,7 @@ export class ServicesManager extends events.EventEmitter {
         }
     }
 
-    /**
-     * 启动所有注册的服务。按照注册的先后顺序来启动服务。先注册的服务先启动。     
-     * 如果启动过程中某个服务出现异常，则后面的服务则不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序）。     
-     * 启动结束后会触发started事件
-     */
-    start() {
-        //主要是为了等待构造函数中的事件绑定完成
-        setImmediate(this._start.bind(this));
-    }
-    private async _start() {
-        //确保只有在stopped的情况下才能执行start
-        if (this._status !== RunningStatus.stopped) {
-            throw new Error(
-                log.s1.format(
-                    `${this.name}`,
-                    '在还未完全关闭的情况下又再次被启动。',
-                    `当前的状态为：${RunningStatus[this._status]}`
-                )
-            );
-        }
 
-        log.s1.l(log.chalk.bold.bgMagenta(this.name), '开始启动服务');
-        this._status = RunningStatus.starting;
-
-        for (let item of this.services.values()) {
-            //如果启动过程中出现了异常则就不再向下启动了（因为出现了异常之后_status或变为stopping）
-            if (this._status !== RunningStatus.starting) return;
-
-            const failed = await item._start();
-
-            //不为空则表示启动失败
-            if (failed !== undefined) {
-                return this.stop(2);
-            }
-        }
-
-        log.s1.l(log.chalk.bold.bgMagenta(this.name), '所有服务已启动');
-        this._status = RunningStatus.running;
-        this.emit('started');
-    }
 
     /**
      * 关闭所有已启动的服务。先注册的服务最后被关闭。当所有服务都被关闭后将会退出程序。
@@ -203,57 +132,12 @@ export class ServicesManager extends events.EventEmitter {
         setImmediate(this._stop.bind(this), exitCode);
     }
     private async _stop(exitCode: number) {
-        //确保不会重复停止
-        if (this._status === RunningStatus.stopping || this._status === RunningStatus.stopped) {
-            throw new Error(
-                log.s1.format(
-                    `${this.name}`,
-                    '在处于正在停止或已停止的状态下又再次被停止。',
-                    `当前的状态为：${RunningStatus[this._status]}`
-                )
-            );
-        }
-
-        log.s1.l(log.chalk.bold.bgMagenta(this.name), '开始停止服务');
-        this._status = RunningStatus.stopping;
-
-        for (let item of Array.from(this.services.values()).reverse()) {
-            if (item.status !== RunningStatus.stopping && item.status !== RunningStatus.stopped)
-                await item._stop();
-        }
-
-        log.s1.l(log.chalk.bold.bgMagenta(this.name), '所有服务已停止');
-        this._status = RunningStatus.stopped;
-        this.emit('stopped');
-
         //是否退出服务
         if (this._config.exitAfterStopped !== false)
             process.exit(exitCode);
     }
 
-    /**
-     * 注册服务。注册服务的名称是以类名为准
-     * 
-     * @param {ServiceModule} serviceModule 服务模块实例
-     * @memberof ServicesManager
-     */
-    registerService(serviceModule: ServiceModule) {
-        if (this.services.has(serviceModule.constructor.name)) {
-            throw new Error(`服务：'${serviceModule.name}'已注册过了`);
-        } else {
-            this.services.set(serviceModule.constructor.name, new RegisteredService(serviceModule, this));
-        }
-    }
 
-    /**
-     * 服务运行过程中的错误处理方法。服务启动或关闭过程中产生的错误不会触发该方法。
-     * 注意：onError中的代码不应出现错误，如果onError的中的代码出现错误将直接导致程序关闭。
-     * 
-     * @param {Error} err 
-     * @param {ServiceModule} service 发生错误的服务实例
-     * @memberof ServicesManager
-     */
-    onError(err: Error, service: ServiceModule) {
-        log.s1.e(`服务：${service.name}`, '发生错误：', err);
-    }
+
+
 }
