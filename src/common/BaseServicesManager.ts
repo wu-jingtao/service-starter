@@ -4,7 +4,17 @@ import { RunningStatus } from "./RunningStatus";
 import log from 'log-formatter';
 import * as Emitter from 'component-emitter';
 
+/**
+ * 服务管理器。管理所有服务的启动、停止、添加注册、异常处理
+ * 
+ * @export
+ * @class BaseServicesManager
+ * @extends {Emitter}
+ */
 export class BaseServicesManager extends Emitter {
+
+    //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
+    private static _servicesManagerCreated = false;
 
     /**
      * 注册的服务列表。(服务只应当通过registerService来进行注册)
@@ -26,6 +36,15 @@ export class BaseServicesManager extends Emitter {
      */
     get name(): string {
         return this.constructor.name;
+    }
+
+    constructor() {
+        super();
+
+        if (BaseServicesManager._servicesManagerCreated)
+            throw new Error(`一个进程只允许创建一个ServicesManager。${this.name}已经被创建了`);
+
+        BaseServicesManager._servicesManagerCreated = true;
     }
 
     /**
@@ -84,21 +103,33 @@ export class BaseServicesManager extends Emitter {
     }
 
     /**
-     * 进行健康检查。健康返回空，出现问题返回错误对象与模块对象   
-     * 注意：如果程序的运行状态为starting，stopping，stopped，则不进行检查直接判定为健康。
-     * 
-     * @returns {(Promise<[Error, BaseServiceModule] | void>)} 
+     * 进行健康检查。
+     * 注意：如果程序的运行状态为starting，stopping，stopped，则会直接将程序的运行视为健康。     
+     * 返回 starting，stopping，stopped，running 则表示健康，否则表示不健康
+     * @returns {(Promise<[string>)} 
      * @memberof BaseServicesManager
      */
-    async healthCheck(): Promise<[Error, BaseServiceModule] | void> {
-        //服务还未处于running时直接返回空
-        if (this._status !== RunningStatus.running) return;
+    async healthCheck(): Promise<string> {
+        //服务还未处于running时直接返回状态文字
+        if (this._status !== RunningStatus.running)
+            return RunningStatus[this._status];
+
+        let result: [Error, BaseServiceModule] | undefined;
 
         //检查每一个服务的健康状况
         for (let item of this.services.values()) {
             const err = await item.healthCheck();
             //不为空就表示有问题了
-            if (err !== undefined) return [err, item.service];
+            if (err !== undefined) {
+                result = [err, item.service];
+                break;
+            }
+        }
+
+        if (result === undefined) {
+            return RunningStatus[this._status];
+        } else {
+            return `[${result[1].name}]  ${result[0]}`;
         }
     }
 
@@ -144,5 +175,26 @@ export class BaseServicesManager extends Emitter {
         } else {
             this.services.set(serviceModule.constructor.name, new RegisteredService(serviceModule, this));
         }
+    }
+
+    /**
+     * 程序已启动
+     */
+    on(event: 'started', listener: () => any): this;
+    /**
+     * 程序已关闭
+     */
+    on(event: 'stopped', listener: () => any): this;
+    on(event: string, listener: Function): this {
+        super.on(event, listener);
+        return this;
+    }
+
+
+    once(event: 'started', listener: () => any): this;
+    once(event: 'stopped', listener: () => any): this;
+    once(event: string, listener: Function): this {
+        super.once(event, listener);
+        return this;
     }
 }
