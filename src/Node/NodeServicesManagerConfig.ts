@@ -1,5 +1,5 @@
 /**
- * NodeServicesManager配置
+ * NodeServicesManager构造函数参数
  * 
  * @export
  * @interface NodeServicesManagerConfig

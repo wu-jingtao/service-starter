@@ -16,7 +16,7 @@ import log from 'log-formatter';
 export class NodeServicesManager extends BaseServicesManager {
     constructor(private readonly _config: NodeServicesManagerConfig = {}) {
         super();
-
+        
         process.on('unhandledRejection', this.onUnHandledException.bind(this));
         process.on('uncaughtException', this.onUnHandledException.bind(this));
 
