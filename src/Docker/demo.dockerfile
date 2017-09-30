@@ -3,7 +3,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
 	&& rm -rf /var/lib/apt/lists/*
 
-COPY node_modules/service-starter/docker/health_check.sh /app/health_check.sh
+COPY node_modules/service-starter/src/Docker/health_check.sh /app/health_check.sh
 
 HEALTHCHECK \
 # 每次检查的间隔时间
