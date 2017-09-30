@@ -35,11 +35,10 @@ export class RegisteredService {
                 break;
 
             default:
-                const type = Object.prototype.toString.call(value);
-                if (type === '[object Object]')
-                    this._manager.onError((<any>value).errName, (<any>value).err, this.service);
+                if (typeof value === 'object')
+                    this._manager.onError(value.errName, value.err, this.service);
                 else
-                    throw new Error(`[${this.service}] onError的返回值类型不满足要求。实际返回的类型为:${type}`);
+                    throw new Error(`[${this.service}] onError的返回值类型不满足要求。实际返回的类型为:${typeof value}`);
                 break;
         }
     };

@@ -50,11 +50,12 @@ export class NodeServicesManager extends BaseServicesManager {
             }
         });
 
-        if (process.connected) {
+        if (process.connected) { //调用健康检查
             const listener = async (message: string) => {
                 if (message === '__ss__healthCheck') {
-                    const result = await this.healthCheck();
-                    process.send && process.send(`__ss__healthCheck__return${result}`);
+                    const result: any = await this.healthCheck();
+                    result.type = 'healthCheck';
+                    process.send && process.send(result);
                 }
             };
             process.on('message', listener);

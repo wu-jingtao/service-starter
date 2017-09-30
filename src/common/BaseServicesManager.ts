@@ -5,7 +5,7 @@ import log from 'log-formatter';
 import * as Emitter from 'component-emitter';
 
 /**
- * 服务管理器。管理所有服务的启动、停止、添加注册、异常处理
+ * 服务管理器。管理所有服务的启动、停止、添加、异常处理
  * 
  * @export
  * @class BaseServicesManager
@@ -104,33 +104,29 @@ export class BaseServicesManager extends Emitter {
 
     /**
      * 进行健康检查。
-     * 注意：如果程序的运行状态为starting，stopping，stopped，则会直接将程序的运行视为健康。     
-     * 返回 starting，stopping，stopped，running 则表示健康，否则表示不健康
-     * @returns {(Promise<[string>)} 
+     * 注意：如果程序的运行状态为starting，stopping，stopped，则直接将程序的运行视为健康。只有当运行状态为running时才进行健康检查。     
+     * 返回 isHealth 表示是否健康 description对当前状态的额外描述
+     * 
+     * @returns {Promise<{ isHealth: boolean, description: string }>} 
      * @memberof BaseServicesManager
      */
-    async healthCheck(): Promise<string> {
-        //服务还未处于running时直接返回状态文字
-        if (this._status !== RunningStatus.running)
-            return RunningStatus[this._status];
+    async healthCheck(): Promise<{ isHealth: boolean, description: string }> {
+        const result = { isHealth: true, description: RunningStatus[this._status] };
 
-        let result: [Error, BaseServiceModule] | undefined;
+        if (this._status === RunningStatus.running) {
+            for (let item of this.services.values()) { //检查每一个服务的健康状况
+                const err = await item.healthCheck();
 
-        //检查每一个服务的健康状况
-        for (let item of this.services.values()) {
-            const err = await item.healthCheck();
-            //不为空就表示有问题了
-            if (err !== undefined) {
-                result = [err, item.service];
-                break;
+                //不为空就表示有问题了
+                if (err !== undefined) {
+                    result.isHealth = false;
+                    result.description = `[${item.service.name}]  ${err.message} -> \r\n ${err.stack}`;
+                    break;
+                }
             }
         }
 
-        if (result === undefined) {
-            return RunningStatus[this._status];
-        } else {
-            return `[${result[1].name}]  ${result[0]}`;
-        }
+        return result;
     }
 
     /**

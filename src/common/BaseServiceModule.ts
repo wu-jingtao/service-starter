@@ -58,7 +58,7 @@ export abstract class BaseServiceModule extends Emitter {
      * 启动服务     
      * 注意：启动过程中出现的错误直接通过Promise.reject()来处理。
      * 启动之后(运行过程中)出现的错误，通过this.emit('error')来处理。
-     * 尽可能地捕捉异常，然后在onError中处理，未捕捉的异常根据平台的不同可能会导致程序直接被关闭。
+     * 尽可能多地捕捉异常，然后在onError中处理，未捕捉的异常根据平台的不同可能会导致程序直接被关闭。
      * 
      * @abstract
      * @returns {Promise<void>} 
@@ -67,7 +67,7 @@ export abstract class BaseServiceModule extends Emitter {
 
     /**
      * 停止服务     
-     * 注意：停止过程中出现的错误直接通过Promise.reject()来处理。尽量避免出现未捕获异常
+     * 注意：停止过程中出现的错误直接通过Promise.reject()来处理。停止过程中尽量避免出现未捕获异常
      * 
      * @returns {Promise<void>} 
      */
