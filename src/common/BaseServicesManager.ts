@@ -66,7 +66,10 @@ export class BaseServicesManager extends Emitter {
 
                 //不为空则表示启动失败
                 if (await item.start() !== undefined) {
-                    return this.stop(2);
+                    if (this.status !== RunningStatus.stopping && this.status !== RunningStatus.stopped) {
+                        this.stop(2);
+                    }
+                    return;
                 }
             }
 
@@ -91,7 +94,7 @@ export class BaseServicesManager extends Emitter {
         this._status = RunningStatus.stopping;
 
         setTimeout(async () => {
-            for (let item of [...this.services.values()].reverse()) {
+            for (let item of [...this.services.values()].reverse()) { //从后向前停止
                 if (item.service.runningStatus !== RunningStatus.stopping && item.service.runningStatus !== RunningStatus.stopped)
                     await item.stop();
             }

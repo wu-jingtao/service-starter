@@ -38,7 +38,7 @@ export class RegisteredService {
                 if (typeof value === 'object')
                     this._manager.onError(value.errName, value.err, this.service);
                 else
-                    throw new Error(`[${this.service}] onError的返回值类型不满足要求。实际返回的类型为:${typeof value}`);
+                    throw new Error(`[${this.service.name}] onError的返回值类型不满足要求。实际返回的类型为:${typeof value}`);
                 break;
         }
     };
