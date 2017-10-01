@@ -1,7 +1,7 @@
 {
     "name": "service-starter",
-    "version": "0.3.1",
-    "description": "标准化nodejs程序的结构体系。提供一个通用的启动和关闭程序的方式。兼容Docker。使用Typescript编写。",
+    "version": "1.0.0",
+    "description": "标准化js程序的结构体系。提供一个通用的启动和关闭程序的方式。兼容Docker。使用Typescript编写。",
     "main": "./bin/index.js",
     "types": "./bin/index.d.ts",
     "repository": {
@@ -9,7 +9,6 @@
         "url": "git+https://github.com/mx601595686/service-starter.git"
     },
     "scripts": {
-        "test": "./node_modules/.bin/mocha --compilers ts:ts-node/register,tsx:ts-node/register",
         "compile": "./node_modules/.bin/gulp compile"
     },
     "keywords": [
@@ -23,21 +22,17 @@
     },
     "homepage": "https://github.com/mx601595686/service-starter#readme",
     "devDependencies": {
-        "@types/expect.js": "^0.3.29",
-        "@types/fs-extra": "^4.0.0",
-        "@types/mocha": "^2.2.40",
         "@types/node": "^7.0.13",
-        "expect.js": "^0.3.1",
         "gulp": "^3.9.1",
         "gulp-sourcemaps": "^2.4.1",
         "gulp-typescript": "^3.1.5",
-        "mocha": "^3.2.0",
-        "ts-node": "^3.0.4",
         "typescript": "^2.2.2"
     },
     "dependencies": {
-        "@types/chalk": "^0.4.31",
-        "chalk": "^2.1.0",
-        "fs-extra": "^4.0.1"
+        "@types/component-emitter": "^1.2.6",
+        "component-emitter": "^1.2.1",
+        "@types/fs-extra": "^4.0.0",
+        "fs-extra": "^4.0.1",
+        "log-formatter": "^0.1.5"
     }
 }
