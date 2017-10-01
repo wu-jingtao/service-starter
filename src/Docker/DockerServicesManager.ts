@@ -34,7 +34,7 @@ export class DockerServicesManager extends NodeServicesManager {
                 log.error
                     .location.white
                     .title.red
-                    .content.red(this.name, '健康检查服务器出现异常', err);
+                    .content.red(this.name, '健康检查服务器出现异常：', err);
             });
 
             server.listen(port);

@@ -30,7 +30,7 @@ export class NodeServicesManager extends BaseServicesManager {
                 }
             } else {
                 if (forceClose === false) {
-                    log.noTime.title.text.gray.round('正在停止程序，请稍后。。。', '如果要强制退出，请在3秒钟之内再次点击');
+                    log.noTime.title.text.gray('正在停止程序，请稍后。。。', '（如果要强制退出，请在3秒钟之内再次点击）');
                     forceClose = true;
                     setTimeout(() => forceClose = false, 3000);
                 } else {

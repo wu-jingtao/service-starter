@@ -81,9 +81,10 @@ export declare class BaseServicesManager extends Emitter {
      */
     on(event: 'started', listener: () => any): this;
     /**
-     * 程序已关闭
+     * 程序已关闭。
+     * code 退出状态码
      */
-    on(event: 'stopped', listener: () => any): this;
+    on(event: 'stopped', listener: (code: number) => any): this;
     once(event: 'started', listener: () => any): this;
-    once(event: 'stopped', listener: () => any): this;
+    once(event: 'stopped', listener: (code: number) => any): this;
 }

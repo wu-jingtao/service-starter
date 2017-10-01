@@ -36,7 +36,7 @@ export declare abstract class BaseServiceModule extends Emitter {
     abstract onStart(): Promise<void>;
     /**
      * 停止服务
-     * 注意：停止过程中出现的错误直接通过Promise.reject()来处理。停止过程中尽量避免出现未捕获异常
+     * 注意：停止过程中出现的错误直接通过Promise.reject()来处理。停止过程中不要出现未捕获异常
      *
      * @returns {Promise<void>}
      */

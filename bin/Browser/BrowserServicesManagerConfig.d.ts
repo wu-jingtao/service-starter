@@ -1,6 +1,5 @@
 /**
  * BrowserServicesManager构造函数参数。
- * 注意：stopOnError选项的默认值正好与NodeServicesManagerConfig的相反
  *
  * @export
  * @interface BrowserServicesManagerConfig

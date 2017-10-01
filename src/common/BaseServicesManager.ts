@@ -54,7 +54,7 @@ export class BaseServicesManager extends Emitter {
      */
     start() {
         if (this._status !== RunningStatus.stopped)  //确保只有在stopped的情况下才能执行start
-            throw new Error(`[${this.name}] 在还未完全关闭的情况下又再次被启动。当前的状态为：${RunningStatus[this._status]}`);
+            throw new Error(`[${this.name}] 在未完全关闭的情况下又再次被启动。当前的状态为：${RunningStatus[this._status]}`);
 
         log.location.bold.bgMagenta.title.bold.blue(this.name, '开始启动');
         this._status = RunningStatus.starting;
@@ -157,8 +157,8 @@ export class BaseServicesManager extends Emitter {
      */
     onUnHandledException(err: Error) {
         log.error
-            .location.white.bold
-            .title.red
+            .location.bold.bgMagenta.white
+            .title.bold.red
             .content.red(this.name, '出现未捕捉异常：', err);
     }
 
