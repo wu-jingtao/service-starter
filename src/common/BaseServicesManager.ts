@@ -101,7 +101,7 @@ export class BaseServicesManager extends Emitter {
 
             log.location.bold.bgMagenta.title.bold.green(this.name, '停止成功');
             this._status = RunningStatus.stopped;
-            this.emit('stopped');
+            this.emit('stopped', exitCode);
         }, 0);
     }
 
@@ -181,9 +181,10 @@ export class BaseServicesManager extends Emitter {
      */
     on(event: 'started', listener: () => any): this;
     /**
-     * 程序已关闭
+     * 程序已关闭。   
+     * code 退出状态码
      */
-    on(event: 'stopped', listener: () => any): this;
+    on(event: 'stopped', listener: (code: number) => any): this;
     on(event: string, listener: Function): this {
         super.on(event, listener);
         return this;
@@ -191,7 +192,7 @@ export class BaseServicesManager extends Emitter {
 
 
     once(event: 'started', listener: () => any): this;
-    once(event: 'stopped', listener: () => any): this;
+    once(event: 'stopped', listener: (code: number) => any): this;
     once(event: string, listener: Function): this {
         super.once(event, listener);
         return this;

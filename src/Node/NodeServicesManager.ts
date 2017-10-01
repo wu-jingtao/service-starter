@@ -5,7 +5,7 @@ import { RunningStatus } from '../common/RunningStatus';
 import log from 'log-formatter';
 
 /**
- * 在BaseServicesManager的基础上添加了全局未捕获异常处理，退出信号控制，
+ * 在BaseServicesManager的基础上添加了全局未捕获异常处理，退出信号控制。
  * 通过process.on('message')的方式进行健康检查（发送__ss__healthCheck调用健康检查，
  * { isHealth: boolean, description: string, type='healthCheck' }返回检查结果）。
  * 
@@ -16,7 +16,7 @@ import log from 'log-formatter';
 export class NodeServicesManager extends BaseServicesManager {
     constructor(private readonly _config: NodeServicesManagerConfig = {}) {
         super();
-        
+
         process.on('unhandledRejection', this.onUnHandledException.bind(this));
         process.on('uncaughtException', this.onUnHandledException.bind(this));
 
@@ -51,7 +51,7 @@ export class NodeServicesManager extends BaseServicesManager {
             }
         });
 
-        if (process.connected) { //调用健康检查
+        if (process.connected) { //健康检查
             const listener = async (message: string) => {
                 if (message === '__ss__healthCheck') {
                     const result: any = await this.healthCheck();
@@ -66,12 +66,12 @@ export class NodeServicesManager extends BaseServicesManager {
         }
 
         if (_config.exitAfterStopped !== false)
-            this.on('stopped', () => process.exit());
+            this.on('stopped', code => process.exit(code));
     }
 
     onError(errName: string | undefined, err: Error, service: BaseServiceModule) {
         super.onError(errName, err, service);
-        if (this._config.stopOnError !== false) {
+        if (this._config.stopOnError === true) {
             if (this.status !== RunningStatus.stopping) {
                 if (this.status === RunningStatus.stopped) {
                     process.exit(1);
