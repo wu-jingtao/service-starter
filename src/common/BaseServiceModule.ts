@@ -23,7 +23,7 @@ export abstract class BaseServiceModule extends Emitter {
     set runningStatus(v: RunningStatus) {
         this._runningStatus = v;
     }
-    private _runningStatus: RunningStatus;
+    private _runningStatus: RunningStatus = RunningStatus.stopped;
 
     /**
      * 对于服务管理器的引用。    
