@@ -42,7 +42,7 @@ export class BaseServicesManager extends Emitter {
         super();
 
         if (BaseServicesManager._servicesManagerCreated)
-            throw new Error(`一个进程只允许创建一个ServicesManager。${this.name}已经被创建了`);
+            throw new Error(`一个进程只允许创建一个ServicesManager。`);
 
         BaseServicesManager._servicesManagerCreated = true;
     }
@@ -59,7 +59,7 @@ export class BaseServicesManager extends Emitter {
         log.location.bold.bgMagenta.title.bold.blue(this.name, '开始启动');
         this._status = RunningStatus.starting;
 
-        setTimeout(async () => { //主要是为了等待构造函数中的事件绑定完成
+        setTimeout(async () => { //主要是为了等待docker构造函数中的事件绑定完成
             for (let item of this.services.values()) {
                 //如果启动过程中出现了异常则就不再向下启动了（因为出现了异常之后_status或变为stopping）
                 if (this._status !== RunningStatus.starting) return;
@@ -189,7 +189,6 @@ export class BaseServicesManager extends Emitter {
         super.on(event, listener);
         return this;
     }
-
 
     once(event: 'started', listener: () => any): this;
     once(event: 'stopped', listener: (code: number) => any): this;

@@ -66,7 +66,7 @@ export class RegisteredService {
      * @returns {Promise<Error | void>} 
      */
     async start(): Promise<Error | void> {
-        if (this.service.runningStatus !== RunningStatus.stopped) //确保只有在stopped的情况下才能执行_start
+        if (this.service.runningStatus !== RunningStatus.stopped) //确保只有在stopped的情况下才能执行start
             throw new Error(`服务：${this.service.name}在未完全关闭的情况下又再次被启动。当前的状态为：${RunningStatus[this.service.runningStatus]}`);
 
         try {
