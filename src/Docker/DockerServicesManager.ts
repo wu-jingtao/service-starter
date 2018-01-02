@@ -17,7 +17,7 @@ export class DockerServicesManager extends NodeServicesManager {
     constructor(_config: DockerServicesManagerConfig = {}) {
         super(_config);
 
-        if (_config.startHealthChecking !== false) { //配置健康检查服务
+        if (_config.startHealthChecking !== false && process.platform === 'linux') { //配置健康检查服务
             //要被监听的端口
             const port = "/tmp/service_starter_health_checking.sock";
 
