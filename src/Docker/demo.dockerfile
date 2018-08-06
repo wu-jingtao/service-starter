@@ -12,8 +12,8 @@ COPY package.json /app/package.json
 RUN npm install --production 
 
 # 确保可执行以及编码问题
-RUN dos2unix /app/node_modules/service-starter/src/Docker/health_check.sh
-RUN chmod 755 /app/node_modules/service-starter/src/Docker/health_check.sh
+RUN dos2unix /app/node_modules/service-starter/src/Docker/health_check.sh; \
+    chmod 755 /app/node_modules/service-starter/src/Docker/health_check.sh
 
 HEALTHCHECK \
     # 每次检查的间隔时间
@@ -26,4 +26,3 @@ HEALTHCHECK \
     --retries=3 \
     # 调用程序所暴露出的健康检查接口(要使用绝对路径)
     CMD /app/node_modules/service-starter/src/Docker/health_check.sh
-
