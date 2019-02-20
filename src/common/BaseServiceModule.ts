@@ -123,7 +123,7 @@ export abstract class BaseServiceModule extends Emitter {
      * @returns {boolean} 
      * @memberof BaseServiceModule
      */
-    emit(event: 'error', err: Error): boolean;
+    emit(event: 'error', err: Error): this;
     /**
      * 触发错误事件。
      * 
@@ -133,8 +133,8 @@ export abstract class BaseServiceModule extends Emitter {
      * @returns {boolean} 
      * @memberof BaseServiceModule
      */
-    emit(event: 'error', errName: string, err: Error): boolean;
-    emit(event: string, ...args: any[]): boolean {
+    emit(event: 'error', errName: string, err: Error): this;
+    emit(event: string, ...args: any[]): this {
         if (event === 'error') {
             let errName, err;
             if (args[0] instanceof Error) {
@@ -143,9 +143,9 @@ export abstract class BaseServiceModule extends Emitter {
                 errName = args[0];
                 err = args[1];
             }
-            return super.emit(event, errName, err);
+            return super.emit(event, errName, err) as this;
         } else {
-            return super.emit(event, ...args);
+            return super.emit(event, ...args) as this;
         }
     }
 }
