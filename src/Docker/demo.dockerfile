@@ -1,7 +1,6 @@
 # 如果容器还缺少curl，那么还需要安装curl(注意curl版本必须大于7.4 不然没有--unix-socket参数)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    dos2unix \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -11,9 +10,8 @@ COPY package.json /app/package.json
 
 RUN npm install --production 
 
-# 确保可执行以及编码问题
-RUN dos2unix /app/node_modules/service-starter/src/Docker/health_check.sh; \
-    chmod 755 /app/node_modules/service-starter/src/Docker/health_check.sh
+# 确保可执行
+RUN chmod 755 /app/node_modules/service-starter/src/Docker/health_check.sh
 
 HEALTHCHECK \
     # 每次检查的间隔时间

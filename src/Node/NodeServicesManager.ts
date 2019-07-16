@@ -17,7 +17,7 @@ export class NodeServicesManager extends BaseServicesManager {
     constructor(private readonly _config: NodeServicesManagerConfig = {}) {
         super();
 
-        process.on('unhandledRejection', this.onUnHandledException.bind(this));
+        process.on('unhandledRejection', this.onUnHandledException.bind(this) as any);
         process.on('uncaughtException', this.onUnHandledException.bind(this));
 
         let forceClose = false;     //用于标记是否强制退出程序
