@@ -46,26 +46,32 @@ export class BaseServicesManager extends Emitter {
      * 启动结束后会触发started事件
      */
     start(): void {
-        if (this.runningStatus === RunningStatus.stopping)
-            throw new Error(`服务管理器 [${this.name}] 处于正在关闭的情况下又再次被启动`);
+        switch (this.runningStatus) {
+            case RunningStatus.stopping:
+                throw new Error(`服务管理器 [${this.name}] 处于正在关闭的情况下又再次被启动`);
 
-        if (this.runningStatus === RunningStatus.stopped) {
-            log.location.bold.bgMagenta.title.bold.blue(this.name, '开始启动');
-            this.runningStatus = RunningStatus.starting;
+            case RunningStatus.stopped:
+                log.location.bold.bgMagenta.title.bold.blue(this.name, '开始启动');
+                this.runningStatus = RunningStatus.starting;
 
-            setTimeout(async () => { //主要是为了等待docker构造函数中的事件绑定完成
-                for (const item of this.services.values()) {
-                    //不为空则表示启动失败
-                    if (await item.start() !== undefined) {
-                        this.stop(2);
-                        return;
+                setTimeout(async () => { //主要是为了等待docker构造函数中的事件绑定完成
+                    for (const item of this.services.values()) {
+                        //不为空则表示启动失败
+                        if (await item.start() !== undefined) {
+                            this.stop(2);
+                            return;
+                        }
                     }
-                }
 
-                log.location.bold.bgMagenta.title.bold.green(this.name, '启动成功');
-                this.runningStatus = RunningStatus.running;
+                    log.location.bold.bgMagenta.title.bold.green(this.name, '启动成功');
+                    this.runningStatus = RunningStatus.running;
+                    this.emit('started');
+                }, 1);
+                break;
+
+            case RunningStatus.running:
                 this.emit('started');
-            }, 1);
+                break;
         }
     }
 
@@ -76,19 +82,26 @@ export class BaseServicesManager extends Emitter {
      * @param exitCode 程序退出状态码。0正常退出 1是系统错误  2用户服务错误
      */
     stop(exitCode = 0) {
-        if (this.runningStatus === RunningStatus.starting || this.runningStatus === RunningStatus.running) {
-            log.location.bold.bgMagenta.title.bold.blue(this.name, '开始停止');
-            this.runningStatus = RunningStatus.stopping;
+        switch (this.runningStatus) {
+            case RunningStatus.running:
+            case RunningStatus.starting:
+                log.location.bold.bgMagenta.title.bold.blue(this.name, '开始停止');
+                this.runningStatus = RunningStatus.stopping;
 
-            setTimeout(async () => {
-                for (let item of [...this.services.values()].reverse()) { //从后向前停止
-                    await item.stop();
-                }
+                setTimeout(async () => {
+                    for (let item of [...this.services.values()].reverse()) { //从后向前停止
+                        await item.stop();
+                    }
 
-                log.location.bold.bgMagenta.title.bold.green(this.name, '停止成功');
-                this.runningStatus = RunningStatus.stopped;
+                    log.location.bold.bgMagenta.title.bold.green(this.name, '停止成功');
+                    this.runningStatus = RunningStatus.stopped;
+                    this.emit('stopped', exitCode);
+                }, 1);
+                break;
+
+            case RunningStatus.stopped:
                 this.emit('stopped', exitCode);
-            }, 1);
+                break;
         }
     }
 

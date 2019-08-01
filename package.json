@@ -1,6 +1,6 @@
 {
     "name": "service-starter",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "标准化js程序的结构体系。提供一个通用的启动和关闭程序的方式。兼容Docker。使用Typescript编写。",
     "main": "./bin/index.js",
     "types": "./bin/index.d.ts",
