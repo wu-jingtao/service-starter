@@ -1,8 +1,5 @@
 /**
  * 标记程序的运行状态
- * 
- * @export
- * @enum {number}
  */
 export enum RunningStatus {
     /**

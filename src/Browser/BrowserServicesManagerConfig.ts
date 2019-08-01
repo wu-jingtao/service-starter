@@ -1,8 +1,5 @@
 /**
  * BrowserServicesManager构造函数参数。    
- * 
- * @export
- * @interface BrowserServicesManagerConfig
  */
 export interface BrowserServicesManagerConfig {
     /**

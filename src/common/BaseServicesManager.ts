@@ -1,15 +1,11 @@
+import * as Emitter from 'component-emitter';
+import log from 'log-formatter';
 import { BaseServiceModule } from './BaseServiceModule';
 import { RegisteredService } from './RegisteredService';
 import { RunningStatus } from "./RunningStatus";
-import log from 'log-formatter';
-import * as Emitter from 'component-emitter';
 
 /**
  * 服务管理器。管理所有服务的启动、停止、添加、异常处理
- * 
- * @export
- * @class BaseServicesManager
- * @extends {Emitter}
  */
 export class BaseServicesManager extends Emitter {
 
@@ -26,10 +22,7 @@ export class BaseServicesManager extends Emitter {
     /**
      * 运行状态
      */
-    get status() {
-        return this._status;
-    }
-    private _status: RunningStatus = RunningStatus.stopped;
+    runningStatus: RunningStatus = RunningStatus.stopped;
 
     /**
      * BaseServicesManager 的名称，默认是类名。
@@ -42,7 +35,7 @@ export class BaseServicesManager extends Emitter {
         super();
 
         if (BaseServicesManager._servicesManagerCreated)
-            throw new Error(`一个进程只允许创建一个ServicesManager。`);
+            throw new Error('一个进程只允许创建一个ServicesManager');
 
         BaseServicesManager._servicesManagerCreated = true;
     }
@@ -52,31 +45,28 @@ export class BaseServicesManager extends Emitter {
      * 如果启动过程中某个服务出现异常，则后面的服务将不再被启动，之前启动过了的服务也会被依次关闭（按照从后向前的顺序关闭）。     
      * 启动结束后会触发started事件
      */
-    start() {
-        if (this._status !== RunningStatus.stopped)  //确保只有在stopped的情况下才能执行start
-            throw new Error(`[${this.name}] 在未完全关闭的情况下又再次被启动。当前的状态为：${RunningStatus[this._status]}`);
+    start(): void {
+        if (this.runningStatus === RunningStatus.stopping)
+            throw new Error(`服务管理器 [${this.name}] 处于正在关闭的情况下又再次被启动`);
 
-        log.location.bold.bgMagenta.title.bold.blue(this.name, '开始启动');
-        this._status = RunningStatus.starting;
+        if (this.runningStatus === RunningStatus.stopped) {
+            log.location.bold.bgMagenta.title.bold.blue(this.name, '开始启动');
+            this.runningStatus = RunningStatus.starting;
 
-        setTimeout(async () => { //主要是为了等待docker构造函数中的事件绑定完成
-            for (let item of this.services.values()) {
-                //如果启动过程中出现了异常则就不再向下启动了（因为出现了异常之后_status或变为stopping）
-                if (this._status !== RunningStatus.starting) return;
-
-                //不为空则表示启动失败
-                if (await item.start() !== undefined) {
-                    if (this.status !== RunningStatus.stopping && this.status !== RunningStatus.stopped) {
+            setTimeout(async () => { //主要是为了等待docker构造函数中的事件绑定完成
+                for (const item of this.services.values()) {
+                    //不为空则表示启动失败
+                    if (await item.start() !== undefined) {
                         this.stop(2);
+                        return;
                     }
-                    return;
                 }
-            }
 
-            log.location.bold.bgMagenta.title.bold.green(this.name, '启动成功');
-            this._status = RunningStatus.running;
-            this.emit('started');
-        }, 0);
+                log.location.bold.bgMagenta.title.bold.green(this.name, '启动成功');
+                this.runningStatus = RunningStatus.running;
+                this.emit('started');
+            }, 1);
+        }
     }
 
     /**
@@ -86,37 +76,31 @@ export class BaseServicesManager extends Emitter {
      * @param exitCode 程序退出状态码。0正常退出 1是系统错误  2用户服务错误
      */
     stop(exitCode = 0) {
-        //确保不会重复停止
-        if (this._status === RunningStatus.stopping || this._status === RunningStatus.stopped)
-            throw new Error(`[${this.name}] 在处于正在停止或已停止的状态下又再次被停止。当前的状态为：${RunningStatus[this._status]}`);
+        if (this.runningStatus === RunningStatus.starting || this.runningStatus === RunningStatus.running) {
+            log.location.bold.bgMagenta.title.bold.blue(this.name, '开始停止');
+            this.runningStatus = RunningStatus.stopping;
 
-        log.location.bold.bgMagenta.title.bold.blue(this.name, '开始停止');
-        this._status = RunningStatus.stopping;
-
-        setTimeout(async () => {
-            for (let item of [...this.services.values()].reverse()) { //从后向前停止
-                if (item.service.runningStatus !== RunningStatus.stopping && item.service.runningStatus !== RunningStatus.stopped)
+            setTimeout(async () => {
+                for (let item of [...this.services.values()].reverse()) { //从后向前停止
                     await item.stop();
-            }
+                }
 
-            log.location.bold.bgMagenta.title.bold.green(this.name, '停止成功');
-            this._status = RunningStatus.stopped;
-            this.emit('stopped', exitCode);
-        }, 0);
+                log.location.bold.bgMagenta.title.bold.green(this.name, '停止成功');
+                this.runningStatus = RunningStatus.stopped;
+                this.emit('stopped', exitCode);
+            }, 1);
+        }
     }
 
     /**
      * 进行健康检查。
      * 注意：如果程序的运行状态为starting，stopping，stopped，则直接将程序的运行视为健康。只有当运行状态为running时才进行健康检查。     
      * 返回 isHealth 表示是否健康 description对当前状态的额外描述
-     * 
-     * @returns {Promise<{ isHealth: boolean, description: string }>} 
-     * @memberof BaseServicesManager
      */
     async healthCheck(): Promise<{ isHealth: boolean, description: string }> {
-        const result = { isHealth: true, description: RunningStatus[this._status] };
+        const result = { isHealth: true, description: RunningStatus[this.runningStatus] };
 
-        if (this._status === RunningStatus.running) {
+        if (this.runningStatus === RunningStatus.running) {
             for (let item of this.services.values()) { //检查每一个服务的健康状况
                 const err = await item.healthCheck();
 
@@ -136,41 +120,37 @@ export class BaseServicesManager extends Emitter {
      * 服务运行过程中的错误处理方法。服务启动或关闭过程中产生的错误不会触发该方法。    
      * 覆写时别忘了调用super.onError()
      * 
-     * @param {string | undefined} errName 错误消息的名称
-     * @param {Error} err 错误对象
-     * @param {ServiceModule} service 发生错误的服务实例
-     * @memberof ServicesManager
+     * @param err 错误对象
+     * @param service 发生错误的服务实例
      */
-    onError(errName: string | undefined, err: Error, service: BaseServiceModule) {
+    onError(err: Error, service: BaseServiceModule) {
         log.error
             .location.white
             .title.red
-            .text.red
-            .content.red(service.name, '发生错误：', errName, err);
+            .content.red(service.name, '发生错误：', err);
     }
 
     /**
      * 当出现未捕获异常时触发（包括为处理promise rejection）    
      * 覆写时别忘了调用super.onUnHandledException()
      * 
-     * @param {Error} err 错误对象
+     * @param err 错误对象
      */
     onUnHandledException(err: Error) {
         log.error
             .location.bold.bgMagenta.white
-            .title.bold.red
+            .title.red
             .content.red(this.name, '出现未捕捉异常：', err);
     }
 
     /**
      * 注册服务。注册服务的名称是以类名为准
      * 
-     * @param {ServiceModule} serviceModule 服务模块实例
-     * @memberof ServicesManager
+     * @param serviceModule 服务模块实例
      */
     registerService(serviceModule: BaseServiceModule) {
         if (this.services.has(serviceModule.constructor.name)) {
-            throw new Error(`服务：'${serviceModule.name}'已注册过了`);
+            throw new Error(`服务模块 [${serviceModule.name}] 已注册过了`);
         } else {
             this.services.set(serviceModule.constructor.name, new RegisteredService(serviceModule, this));
         }

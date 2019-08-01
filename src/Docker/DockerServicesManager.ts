@@ -1,17 +1,12 @@
-import { DockerServicesManagerConfig } from './DockerServicesManagerConfig';
-import { NodeServicesManager } from './../Node/NodeServicesManager';
 import http = require('http');
 import fs = require('fs-extra');
 import log from 'log-formatter';
-
+import { DockerServicesManagerConfig } from './DockerServicesManagerConfig';
+import { NodeServicesManager } from './../Node/NodeServicesManager';
 
 /**
  * NodeServicesManager的基础上添加的功docker进行健康检查的服务器。    
  * 服务器监听在 /tmp/service_starter_health_checking.sock
- * 
- * @export
- * @class DockerServicesManager
- * @extends {NodeServicesManager}
  */
 export class DockerServicesManager extends NodeServicesManager {
     constructor(_config: DockerServicesManagerConfig = {}) {

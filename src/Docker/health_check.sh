@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 # 查询健康检查结果
 result=$(curl --connect-timeout 30 --max-time 30 -s --no-buffer -XGET --unix-socket /tmp/service_starter_health_checking.sock http://health-check.com)

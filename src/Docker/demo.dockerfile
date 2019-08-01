@@ -3,13 +3,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
 	&& rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-COPY bin /app/bin
-COPY package.json /app/package.json
-
-RUN npm install --production 
-
 # 确保可执行
 RUN chmod 755 /app/node_modules/service-starter/src/Docker/health_check.sh
 
