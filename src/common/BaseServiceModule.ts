@@ -16,8 +16,7 @@ export abstract class BaseServiceModule extends Emitter {
         get: (_, property: string) => {
             if (this._servicesManager !== undefined) {
                 const rs = this._servicesManager.services.get(property);
-                if (rs !== undefined)
-                    return rs.service;
+                if (rs !== undefined) return rs.service;
             }
         }
     });
@@ -69,8 +68,8 @@ export abstract class BaseServiceModule extends Emitter {
      * 当服务发生异常时，这个方法会在全局错误处理方法(BaseServicesManager的onError)之前被调用。      
      * 注意：该方法只有当服务在运行过程中发生错误时（通过this.emit('error')触发的错误），该方法才会被调用。    
      * 
-     * 返回false                    ：错误不再交由全局错误处理方法处理
-     * 返回Error                    ：将Error交由全局错误处理方法处理
+     * 返回false：错误不再交由全局错误处理方法处理   
+     * 返回Error：将Error交由全局错误处理方法处理
      * 
      * @param err 错误消息
      */
