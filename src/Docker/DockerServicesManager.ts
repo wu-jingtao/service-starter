@@ -1,7 +1,7 @@
 import http = require('http');
 import fs = require('fs-extra');
 import log from 'log-formatter';
-import { DockerServicesManagerConfig } from './DockerServicesManagerConfig';
+import { IDockerServicesManagerConfig } from './IDockerServicesManagerConfig';
 import { NodeServicesManager } from './../Node/NodeServicesManager';
 
 /**
@@ -9,17 +9,17 @@ import { NodeServicesManager } from './../Node/NodeServicesManager';
  * 服务器监听在 /tmp/service_starter_health_checking.sock
  */
 export class DockerServicesManager extends NodeServicesManager {
-    constructor(_config: DockerServicesManagerConfig = {}) {
+    constructor(_config: IDockerServicesManagerConfig = {}) {
         super(_config);
 
-        if (_config.startHealthChecking !== false && process.platform === 'linux') { //配置健康检查服务
-            //要被监听的端口
-            const port = "/tmp/service_starter_health_checking.sock";
+        if (_config.startHealthChecking !== false && process.platform === 'linux') { // 配置健康检查服务
+            // 要被监听的端口
+            const port = '/tmp/service_starter_health_checking.sock';
 
-            //删除之前的端口，避免被占用
+            // 删除之前的端口，避免被占用
             fs.removeSync(port);
 
-            //创建服务器
+            // 创建服务器
             const server = http.createServer(async (req, res) => {
                 const result = await this.healthCheck();
                 res.end(result.description);

@@ -1,7 +1,7 @@
 import log from 'log-formatter';
-import { BaseServiceModule } from "./BaseServiceModule";
-import { BaseServicesManager } from "./BaseServicesManager";
-import { RunningStatus } from "./RunningStatus";
+import { BaseServiceModule } from './BaseServiceModule';
+import { BaseServicesManager } from './BaseServicesManager';
+import { RunningStatus } from './RunningStatus';
 
 /**
  * 对于注册服务的生命周期进行管理。
@@ -15,14 +15,6 @@ export class RegisteredService {
     private readonly _manager: BaseServicesManager;
 
     /**
-     * 绑定在服务模块上的错误监听器
-     */
-    private readonly _errorListener = async (err: Error) => {
-        const value = await this.service.onError(err);
-        if (value !== false) this._manager.onError(value, this.service);
-    };
-
-    /**
      * 服务实例
      */
     readonly service: BaseServiceModule;
@@ -30,8 +22,16 @@ export class RegisteredService {
     constructor(service: BaseServiceModule, manager: BaseServicesManager) {
         this._manager = manager;
         this.service = service;
-        this.service.servicesManager = manager; //给服务绑定管理器
+        this.service.servicesManager = manager; // 给服务绑定管理器
     }
+
+    /**
+     * 绑定在服务模块上的错误监听器
+     */
+    private readonly _errorListener = async (err: Error): Promise<void> => {
+        const value = await this.service.onError(err);
+        if (value !== false) this._manager.onError(value, this.service);
+    };
 
     /**
      * 启动服务。成功返回void，失败返回Error。    

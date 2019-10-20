@@ -2,14 +2,14 @@ import * as Emitter from 'component-emitter';
 import log from 'log-formatter';
 import { BaseServiceModule } from './BaseServiceModule';
 import { RegisteredService } from './RegisteredService';
-import { RunningStatus } from "./RunningStatus";
+import { RunningStatus } from './RunningStatus';
 
 /**
  * 服务管理器。管理所有服务的启动、停止、添加、异常处理
  */
 export class BaseServicesManager extends Emitter {
 
-    //ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
+    // ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
     private static _servicesManagerCreated = false;
 
     /**
@@ -54,9 +54,9 @@ export class BaseServicesManager extends Emitter {
                 log.location.bold.bgMagenta.title.bold.blue(this.name, '开始启动');
                 this.runningStatus = RunningStatus.starting;
 
-                setTimeout(async () => { //主要是为了等待docker构造函数中的事件绑定完成
+                setTimeout(async () => { // 主要是为了等待docker构造函数中的事件绑定完成
                     for (const item of this.services.values()) {
-                        //不为空则表示启动失败
+                        // 不为空则表示启动失败
                         if (await item.start() !== undefined) {
                             this.stop(2);
                             return;
@@ -81,7 +81,7 @@ export class BaseServicesManager extends Emitter {
      * 
      * @param exitCode 程序退出状态码。0正常退出 1是系统错误  2用户服务错误
      */
-    stop(exitCode = 0) {
+    stop(exitCode = 0): void {
         switch (this.runningStatus) {
             case RunningStatus.running:
             case RunningStatus.starting:
@@ -89,7 +89,7 @@ export class BaseServicesManager extends Emitter {
                 this.runningStatus = RunningStatus.stopping;
 
                 setTimeout(async () => {
-                    for (let item of [...this.services.values()].reverse()) { //从后向前停止
+                    for (const item of [...this.services.values()].reverse()) { // 从后向前停止
                         await item.stop();
                     }
 
@@ -110,14 +110,14 @@ export class BaseServicesManager extends Emitter {
      * 注意：如果程序的运行状态为starting，stopping，stopped，则直接将程序的运行视为健康。只有当运行状态为running时才进行健康检查。     
      * 返回 isHealth 表示是否健康 description对当前状态的额外描述
      */
-    async healthCheck(): Promise<{ isHealth: boolean, description: string }> {
+    async healthCheck(): Promise<{ isHealth: boolean; description: string }> {
         const result = { isHealth: true, description: RunningStatus[this.runningStatus] };
 
         if (this.runningStatus === RunningStatus.running) {
-            for (let item of this.services.values()) { //检查每一个服务的健康状况
+            for (const item of this.services.values()) { // 检查每一个服务的健康状况
                 const err = await item.healthCheck();
 
-                //不为空就表示有问题了
+                // 不为空就表示有问题了
                 if (err !== undefined) {
                     result.isHealth = false;
                     result.description = `[${item.service.name}]  ${err.message} -> \r\n ${err.stack}`;
@@ -136,7 +136,7 @@ export class BaseServicesManager extends Emitter {
      * @param err 错误对象
      * @param service 发生错误的服务实例
      */
-    onError(err: Error, service: BaseServiceModule) {
+    onError(err: Error, service: BaseServiceModule): void {
         log.error
             .location.white
             .title.red
@@ -149,7 +149,7 @@ export class BaseServicesManager extends Emitter {
      * 
      * @param err 错误对象
      */
-    onUnHandledException(err: Error) {
+    onUnHandledException(err: Error): void {
         log.error
             .location.bold.bgMagenta.white
             .title.red
@@ -161,12 +161,11 @@ export class BaseServicesManager extends Emitter {
      * 
      * @param serviceModule 服务模块实例
      */
-    registerService(serviceModule: BaseServiceModule) {
-        if (this.services.has(serviceModule.constructor.name)) {
+    registerService(serviceModule: BaseServiceModule): void {
+        if (this.services.has(serviceModule.constructor.name))
             throw new Error(`服务模块 [${serviceModule.name}] 已注册过了`);
-        } else {
+        else
             this.services.set(serviceModule.constructor.name, new RegisteredService(serviceModule, this));
-        }
     }
 
     /**

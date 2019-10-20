@@ -5,7 +5,7 @@
 一个容器是由一个`ServicesManager`和多个`ServiceModule`所组成的。
 
 ### ServicesManager
-一个进程之中只能允许实例化一个`ServicesManager`（[API](bin/common/BaseServicesManager.d.ts)）。该类负责
+一个进程之中只能允许实例化一个`ServicesManager`（[API](bin/common/BaseServicesManager.d.ts)）。该类负责：
 * 按照服务注册的顺序来启动服务
 * 响应容器的健康检查
 * 按照服务注册相反的顺序来关闭服务

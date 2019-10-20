@@ -1,7 +1,7 @@
 /**
  * BrowserServicesManager构造函数参数。    
  */
-export interface BrowserServicesManagerConfig {
+export interface IBrowserServicesManagerConfig {
     /**
      * 当有错误发生时是否停止服务(默认false,不停止)
      */

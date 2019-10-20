@@ -1,11 +1,14 @@
 import * as Emitter from 'component-emitter';
-import { BaseServicesManager } from "./BaseServicesManager";
+import { BaseServicesManager } from './BaseServicesManager';
 import { RunningStatus } from './RunningStatus';
 
 /**
  * 所有服务模块的父类    
  */
 export abstract class BaseServiceModule extends Emitter {
+
+    private _servicesManager: BaseServicesManager;
+
     /**
      * 其他服务模块
      */
@@ -39,13 +42,12 @@ export abstract class BaseServiceModule extends Emitter {
         return this._servicesManager;
     }
     set servicesManager(v: BaseServicesManager) {
-        //确保只能被设置一次
+        // 确保只能被设置一次
         if (this._servicesManager === undefined)
             this._servicesManager = v;
         else
             throw new Error(`服务模块：${this.name}：不允许重复设置ServicesManager`);
     }
-    private _servicesManager: BaseServicesManager;
 
     /**
      * 启动服务     
@@ -79,8 +81,6 @@ export abstract class BaseServiceModule extends Emitter {
     /**
      * 检查当前服务运行是否正常。   
      * 如果正常直接Promise.resolve()，如果出现异常直接Promise.reject(new Error())
-     * 
-     * @returns {Promise<void>} 
      */
     onHealthCheck(): Promise<void> {
         return Promise.resolve();
