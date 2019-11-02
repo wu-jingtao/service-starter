@@ -14,11 +14,10 @@ export abstract class BaseServiceModule extends Emitter {
      */
     readonly services: any = new Proxy({}, {
         get: (_, property: string) => {
-            if (this._servicesManager !== undefined) {
-                const rs = this._servicesManager.services.get(property);
-                if (rs !== undefined) return rs.service;
-            }
-        }
+            if (this._servicesManager !== undefined)
+                return this._servicesManager.services[property];
+        },
+        set() { return false }
     });
 
     /**

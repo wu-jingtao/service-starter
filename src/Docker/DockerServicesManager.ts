@@ -1,5 +1,5 @@
 import http = require('http');
-import fs = require('fs-extra');
+import fs = require('fs');
 import log from 'log-formatter';
 import { IDockerServicesManagerConfig } from './IDockerServicesManagerConfig';
 import { NodeServicesManager } from './../Node/NodeServicesManager';
@@ -12,12 +12,9 @@ export class DockerServicesManager extends NodeServicesManager {
     constructor(_config: IDockerServicesManagerConfig = {}) {
         super(_config);
 
-        if (_config.startHealthChecking !== false && process.platform === 'linux') { // 配置健康检查服务
-            // 要被监听的端口
-            const port = '/tmp/service_starter_health_checking.sock';
-
-            // 删除之前的端口，避免被占用
-            fs.removeSync(port);
+        if (_config.startHealthChecking !== false && ['linux', 'darwin'].includes(process.platform)) { // 配置健康检查服务
+            const port = '/tmp/service_starter_health_checking.sock'; // 要被监听的端口
+            fs.unlinkSync(port); // 删除之前的端口，避免被占用
 
             // 创建服务器
             const server = http.createServer(async (req, res) => {

@@ -9,15 +9,26 @@ import { RunningStatus } from './RunningStatus';
  */
 export class BaseServicesManager extends Emitter {
 
-    // ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
+    /**
+     * ServicesManager是否已经创建了（一个进程只允许创建一个ServicesManager）
+     */
     private static _servicesManagerCreated = false;
 
     /**
-     * 注册的服务列表。(服务只应当通过registerService来进行注册)
-     * 
-     * key是服务名称
+     * 注册的服务列表
      */
-    readonly services = new Map<string, RegisteredService>();
+    private readonly _registeredServices = new Map<string, RegisteredService>();
+
+    /**
+     * 获取注册了的服务模块
+     */
+    readonly services: any = new Proxy({}, {
+        get: (_, property: string) => {
+            const rs = this._registeredServices.get(property);
+            if (rs !== undefined) return rs.service;
+        },
+        set() { return false }
+    });
 
     /**
      * 运行状态
@@ -55,9 +66,8 @@ export class BaseServicesManager extends Emitter {
                 this.runningStatus = RunningStatus.starting;
 
                 setTimeout(async () => { // 主要是为了等待docker构造函数中的事件绑定完成
-                    for (const item of this.services.values()) {
-                        // 不为空则表示启动失败
-                        if (await item.start() !== undefined) {
+                    for (const item of this._registeredServices.values()) {
+                        if (await item.start() !== undefined) { // 不为空则表示启动失败
                             this.stop(2);
                             return;
                         }
@@ -66,11 +76,7 @@ export class BaseServicesManager extends Emitter {
                     log.location.bold.bgMagenta.title.bold.green(this.name, '启动成功');
                     this.runningStatus = RunningStatus.running;
                     this.emit('started');
-                }, 1);
-                break;
-
-            case RunningStatus.running:
-                this.emit('started');
+                }, 10);
                 break;
         }
     }
@@ -79,7 +85,7 @@ export class BaseServicesManager extends Emitter {
      * 关闭所有已启动的服务。先注册的服务最后被关闭。
      * 当所有服务都停止后出发stopped事件
      * 
-     * @param exitCode 程序退出状态码。0正常退出 1是系统错误  2用户服务错误
+     * @param exitCode 程序退出状态码。0正常退出 1是系统错误 2用户服务错误
      */
     stop(exitCode = 0): void {
         switch (this.runningStatus) {
@@ -89,18 +95,13 @@ export class BaseServicesManager extends Emitter {
                 this.runningStatus = RunningStatus.stopping;
 
                 setTimeout(async () => {
-                    for (const item of [...this.services.values()].reverse()) { // 从后向前停止
+                    for (const item of [...this._registeredServices.values()].reverse())  // 从后向前停止
                         await item.stop();
-                    }
 
                     log.location.bold.bgMagenta.title.bold.green(this.name, '停止成功');
                     this.runningStatus = RunningStatus.stopped;
                     this.emit('stopped', exitCode);
-                }, 1);
-                break;
-
-            case RunningStatus.stopped:
-                this.emit('stopped', exitCode);
+                }, 10);
                 break;
         }
     }
@@ -114,11 +115,10 @@ export class BaseServicesManager extends Emitter {
         const result = { isHealth: true, description: RunningStatus[this.runningStatus] };
 
         if (this.runningStatus === RunningStatus.running) {
-            for (const item of this.services.values()) { // 检查每一个服务的健康状况
+            for (const item of this._registeredServices.values()) { // 检查每一个服务的健康状况
                 const err = await item.healthCheck();
 
-                // 不为空就表示有问题了
-                if (err !== undefined) {
+                if (err !== undefined) { // 不为空就表示有问题了
                     result.isHealth = false;
                     result.description = `[${item.service.name}]  ${err.message} -> \r\n ${err.stack}`;
                     break;
@@ -162,10 +162,10 @@ export class BaseServicesManager extends Emitter {
      * @param serviceModule 服务模块实例
      */
     registerService(serviceModule: BaseServiceModule): void {
-        if (this.services.has(serviceModule.constructor.name))
+        if (this._registeredServices.has(serviceModule.constructor.name))
             throw new Error(`服务模块 [${serviceModule.name}] 已注册过了`);
         else
-            this.services.set(serviceModule.constructor.name, new RegisteredService(serviceModule, this));
+            this._registeredServices.set(serviceModule.constructor.name, new RegisteredService(serviceModule, this));
     }
 
     /**

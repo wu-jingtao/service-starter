@@ -12,7 +12,7 @@ export class RegisteredService {
     /**
      * 保存对服务管理器的引用
      */
-    private readonly _manager: BaseServicesManager;
+    private readonly _servicesManager: BaseServicesManager;
 
     /**
      * 服务实例
@@ -20,7 +20,7 @@ export class RegisteredService {
     readonly service: BaseServiceModule;
 
     constructor(service: BaseServiceModule, manager: BaseServicesManager) {
-        this._manager = manager;
+        this._servicesManager = manager;
         this.service = service;
         this.service.servicesManager = manager; // 给服务绑定管理器
     }
@@ -30,7 +30,7 @@ export class RegisteredService {
      */
     private readonly _errorListener = async (err: Error): Promise<void> => {
         const value = await this.service.onError(err);
-        if (value !== false) this._manager.onError(value, this.service);
+        if (value !== false) this._servicesManager.onError(value, this.service);
     };
 
     /**
@@ -39,28 +39,30 @@ export class RegisteredService {
      * 这个方法仅供内部使用。
      */
     async start(): Promise<Error | void> {
-        if (this.service.runningStatus === RunningStatus.stopping)
-            throw new Error(`服务 [${this.service.name}] 处于正在关闭的情况下又再次被启动`);
+        switch (this.service.runningStatus) {
+            case RunningStatus.stopping:
+                throw new Error(`服务 [${this.service.name}] 处于正在关闭的情况下又再次被启动`);
 
-        if (this.service.runningStatus === RunningStatus.stopped) {
-            try {
-                log.location.title.blue(this.service.name, '开始启动');
-                this.service.runningStatus = RunningStatus.starting;
+            case RunningStatus.stopped:
+                try {
+                    log.location.title.blue(this.service.name, '开始启动');
+                    this.service.runningStatus = RunningStatus.starting;
 
-                this.service.on('error', this._errorListener);
-                await this.service.onStart();
+                    this.service.on('error', this._errorListener);
+                    await this.service.onStart();
 
-                log.location.title.green(this.service.name, '启动成功');
-                this.service.runningStatus = RunningStatus.running;
-            } catch (err) {
-                log.error
-                    .location.white
-                    .title.red
-                    .content.red(this.service.name, '启动失败', err);
+                    log.location.title.green(this.service.name, '启动成功');
+                    this.service.runningStatus = RunningStatus.running;
+                } catch (err) {
+                    log.error
+                        .location.white
+                        .title.red
+                        .content.red(this.service.name, '启动失败', err);
 
-                await this.stop();
-                return err;
-            }
+                    await this.stop();
+                    return err;
+                }
+                break;
         }
     }
 
@@ -70,23 +72,26 @@ export class RegisteredService {
      * 这个方法仅供内部使用。
      */
     async stop(): Promise<void> {
-        if (this.service.runningStatus === RunningStatus.starting || this.service.runningStatus === RunningStatus.running) {
-            try {
-                log.location.title.blue(this.service.name, '开始停止');
-                this.service.runningStatus = RunningStatus.stopping;
+        switch (this.service.runningStatus) {
+            case RunningStatus.starting:
+            case RunningStatus.running:
+                try {
+                    log.location.title.blue(this.service.name, '开始停止');
+                    this.service.runningStatus = RunningStatus.stopping;
 
-                await this.service.onStop();
+                    await this.service.onStop();
 
-                log.location.title.green(this.service.name, '停止成功');
-            } catch (err) {
-                log.warn
-                    .location.white
-                    .title.yellow
-                    .content.yellow(this.service.name, '停止失败', err);
-            } finally {
+                    log.location.title.green(this.service.name, '停止成功');
+                } catch (err) {
+                    log.warn
+                        .location.white
+                        .title.yellow
+                        .content.yellow(this.service.name, '停止失败', err);
+                }
+
                 this.service.runningStatus = RunningStatus.stopped;
                 this.service.off('error', this._errorListener);
-            }
+                break;
         }
     }
 

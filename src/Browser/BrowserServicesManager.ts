@@ -13,6 +13,6 @@ export class BrowserServicesManager extends BaseServicesManager {
 
     onError(err: Error, service: BaseServiceModule): void {
         super.onError(err, service);
-        if (this._config.stopOnError === true) this.stop(1);
+        if (this._config.stopOnError) this.stop(1);
     }
 }
