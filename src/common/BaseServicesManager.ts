@@ -22,7 +22,7 @@ export class BaseServicesManager extends Emitter {
     /**
      * 获取注册了的服务模块
      */
-    readonly services: any = new Proxy({}, {
+    readonly services: { [key: string]: BaseServiceModule } = new Proxy({}, {
         get: (_, property: string) => {
             const rs = this._registeredServices.get(property);
             if (rs !== undefined) return rs.service;
@@ -171,19 +171,19 @@ export class BaseServicesManager extends Emitter {
     /**
      * 程序已启动
      */
-    on(event: 'started', listener: () => any): this;
+    on(event: 'started', listener: () => void): this;
     /**
      * 程序已关闭。   
      * code 退出状态码
      */
-    on(event: 'stopped', listener: (code: number) => any): this;
+    on(event: 'stopped', listener: (code: number) => void): this;
     on(event: string, listener: Function): this {
         super.on(event, listener);
         return this;
     }
 
-    once(event: 'started', listener: () => any): this;
-    once(event: 'stopped', listener: (code: number) => any): this;
+    once(event: 'started', listener: () => void): this;
+    once(event: 'stopped', listener: (code: number) => void): this;
     once(event: string, listener: Function): this {
         super.once(event, listener);
         return this;

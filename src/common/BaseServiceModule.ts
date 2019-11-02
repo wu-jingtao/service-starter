@@ -12,7 +12,7 @@ export abstract class BaseServiceModule extends Emitter {
     /**
      * 其他服务模块
      */
-    readonly services: any = new Proxy({}, {
+    readonly services: { [key: string]: BaseServiceModule } = new Proxy({}, {
         get: (_, property: string) => {
             if (this._servicesManager !== undefined)
                 return this._servicesManager.services[property];
