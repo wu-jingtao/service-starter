@@ -5,7 +5,7 @@
 一个容器是由一个`ServicesManager`和多个`ServiceModule`所组成的。
 
 ### ServicesManager
-一个进程之中只能允许实例化一个`ServicesManager`（[API](bin/common/BaseServicesManager.d.ts)）。该类负责：
+一个进程之中只能允许实例化一个`ServicesManager`（[API](src/common/BaseServicesManager.d.ts)）。该类负责：
 * 按照服务注册的顺序来启动服务
 * 响应容器的健康检查
 * 按照服务注册相反的顺序来关闭服务
@@ -15,7 +15,7 @@
 * 提供了onError回调，用户可以自定义运行时错误处理方式
 
 ### ServiceModule
-规范了一个服务的基本结构（[API](bin/common/BaseServiceModule.d.ts)）
+规范了一个服务的基本结构（[API](src/common/BaseServiceModule.d.ts)）
 
 ### docker
 在该项目docker文件夹下提供了一个[Dockerfile](src/Docker/demo.dockerfile)基础配置模板
