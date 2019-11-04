@@ -1,3 +1,6 @@
 {
-    "extends": "sufu"
+    "extends": "sufu",
+    "rules": {
+        "@typescript-eslint/member-ordering": "off"
+    }
 }

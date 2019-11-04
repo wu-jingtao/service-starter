@@ -6,9 +6,6 @@ import { RunningStatus } from './RunningStatus';
  * 所有服务模块的父类    
  */
 export abstract class BaseServiceModule extends Emitter {
-
-    private _servicesManager: BaseServicesManager;
-
     /**
      * 其他服务模块
      */
@@ -46,7 +43,8 @@ export abstract class BaseServiceModule extends Emitter {
         else
             throw new Error(`服务模块：${this.name}：不允许重复设置ServicesManager`);
     }
-
+    private _servicesManager: BaseServicesManager;
+    
     /**
      * 启动服务     
      * 注意：启动过程中出现的错误直接通过Promise.reject()来处理。
