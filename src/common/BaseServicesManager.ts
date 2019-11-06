@@ -1,4 +1,4 @@
-import * as Emitter from 'component-emitter';
+import Emitter from 'component-emitter';
 import log from 'log-formatter';
 import { BaseServiceModule } from './BaseServiceModule';
 import { RegisteredService } from './RegisteredService';

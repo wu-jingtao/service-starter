@@ -1,5 +1,5 @@
-import http = require('http');
-import fs = require('fs');
+import http from 'http';
+import fs from 'fs';
 import log from 'log-formatter';
 import { IDockerServicesManagerConfig } from './IDockerServicesManagerConfig';
 import { NodeServicesManager } from './../Node/NodeServicesManager';

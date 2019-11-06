@@ -1,4 +1,4 @@
-import * as Emitter from 'component-emitter';
+import Emitter from 'component-emitter';
 import { BaseServicesManager } from './BaseServicesManager';
 import { RunningStatus } from './RunningStatus';
 
