@@ -1,6 +1,6 @@
-export * from './common/RunningStatus';
-export * from './common/BaseServicesManager';
-export * from './common/BaseServiceModule';
+export * from './Common/RunningStatus';
+export * from './Common/BaseServicesManager';
+export * from './Common/BaseServiceModule';
 
 export * from './Browser/BrowserServicesManager';
 export * from './Browser/IBrowserServicesManagerConfig';

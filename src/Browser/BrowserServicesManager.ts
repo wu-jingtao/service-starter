@@ -1,6 +1,6 @@
 import { IBrowserServicesManagerConfig } from './IBrowserServicesManagerConfig';
-import { BaseServicesManager } from './../common/BaseServicesManager';
-import { BaseServiceModule } from '../common/BaseServiceModule';
+import { BaseServicesManager } from '../Common/BaseServicesManager';
+import { BaseServiceModule } from '../Common/BaseServiceModule';
 
 export class BrowserServicesManager extends BaseServicesManager {
 

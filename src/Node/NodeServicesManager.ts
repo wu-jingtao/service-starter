@@ -1,6 +1,6 @@
 import { INodeServicesManagerConfig } from './INodeServicesManagerConfig';
-import { BaseServicesManager } from '../common/BaseServicesManager';
-import { BaseServiceModule } from '../common/BaseServiceModule';
+import { BaseServicesManager } from '../Common/BaseServicesManager';
+import { BaseServiceModule } from '../Common/BaseServiceModule';
 
 /**
  * 在BaseServicesManager的基础上添加了全局未捕获异常处理，退出信号控制。
