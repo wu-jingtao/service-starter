@@ -1,6 +1,11 @@
 # service-starter
 标准化js程序的结构体系。提供一个通用的启动和关闭程序的方式。兼容Docker。使用Typescript编写。
 
+## 安装
+```
+npm i service-starter && npm i @types/component-emitter -D
+```
+
 ## 程序结构
 一个容器是由一个`ServicesManager`和多个`ServiceModule`所组成的。
 
