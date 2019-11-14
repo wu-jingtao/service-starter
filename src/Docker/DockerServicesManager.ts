@@ -14,7 +14,7 @@ export class DockerServicesManager extends NodeServicesManager {
 
         if (_config.startHealthChecking !== false && ['linux', 'darwin'].includes(process.platform)) { // 配置健康检查服务
             const port = '/tmp/service_starter_health_checking.sock'; // 要被监听的端口
-            fs.unlinkSync(port); // 删除之前的端口，避免被占用
+            try { fs.unlinkSync(port) } catch { } // 删除之前的端口，避免被占用
 
             // 创建服务器
             const server = http.createServer(async (req, res) => {
