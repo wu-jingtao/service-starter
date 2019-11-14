@@ -24,11 +24,11 @@
     "homepage": "https://github.com/mx601595686/service-starter#readme",
     "devDependencies": {
         "@types/component-emitter": "^1.2.8",
-        "@types/node": "^12.12.5",
-        "eslint-config-sufu": "^0.1.3",
+        "@types/node": "^12.12.7",
+        "eslint-config-sufu": "^0.1.7",
         "gulp": "^4.0.2",
         "gulp-typescript": "^5.0.1",
-        "typescript": "^3.6.4"
+        "typescript": "^3.7.2"
     },
     "dependencies": {
         "component-emitter": "^1.3.0",
