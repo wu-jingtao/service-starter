@@ -12,11 +12,12 @@ jobs:
             - uses: actions/checkout@master
             - uses: actions/setup-node@v1
               with:
-                  node-version: '12.x'
+                  node-version: '14.x'
                   registry-url: https://registry.npmjs.org/
             - run: npm install
             - run: npm run lint
             - run: npm run compile
+            - run: cp ./src/Docker/health_check.sh .
             - run: npm publish
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

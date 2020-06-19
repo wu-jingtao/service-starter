@@ -1,12 +1,12 @@
-export * from './Common/RunningStatus';
-export * from './Common/BaseServicesManager';
-export * from './Common/BaseServiceModule';
+export * from './Base/RunningStatus';
+export * from './Base/BaseServiceManager';
+export * from './Base/ServiceModule';
 
-export * from './Browser/BrowserServicesManager';
-export * from './Browser/IBrowserServicesManagerConfig';
+export * from './Browser/BrowserServiceManager';
+export * from './Browser/BrowserServiceManagerConfig';
 
-export * from './Node/NodeServicesManager';
-export * from './Node/INodeServicesManagerConfig';
+export * from './Node/NodeServiceManager';
+export * from './Node/NodeServiceManagerConfig';
 
-export * from './Docker/DockerServicesManager';
-export * from './Docker/IDockerServicesManagerConfig';
+export * from './Docker/DockerServiceManager';
+export * from './Docker/DockerServiceManagerConfig';

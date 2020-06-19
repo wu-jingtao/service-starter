@@ -1,15 +1,15 @@
 import http from 'http';
 import fs from 'fs';
 import log from 'log-formatter';
-import { IDockerServicesManagerConfig } from './IDockerServicesManagerConfig';
-import { NodeServicesManager } from './../Node/NodeServicesManager';
+import { DockerServiceManagerConfig } from './DockerServiceManagerConfig';
+import { NodeServiceManager } from '../Node/NodeServiceManager';
 
 /**
- * NodeServicesManager的基础上添加的功docker进行健康检查的服务器。    
+ * 在 NodeServiceManager 的基础上添加的功 docker 进行健康检查的服务器。    
  * 服务器监听在 /tmp/service_starter_health_checking.sock
  */
-export class DockerServicesManager extends NodeServicesManager {
-    constructor(_config: IDockerServicesManagerConfig = {}) {
+export class DockerServiceManager extends NodeServiceManager {
+    constructor(_config: DockerServiceManagerConfig = {}) {
         super(_config);
 
         if (_config.startHealthChecking !== false && ['linux', 'darwin'].includes(process.platform)) { // 配置健康检查服务
@@ -22,7 +22,7 @@ export class DockerServicesManager extends NodeServicesManager {
                 res.end(result.description);
             });
 
-            server.once('error', err => {
+            server.on('error', err => {
                 log.error
                     .location.white
                     .title.red

@@ -6,6 +6,3 @@
 src/
 gulpfile.js
 tsconfig.json
-
-# 这个在程序运行时会用到
-!src/Docker/health_check.sh

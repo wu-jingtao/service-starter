@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 # 确保可执行
-RUN chmod 755 /app/node_modules/service-starter/src/Docker/health_check.sh
+RUN chmod 755 /程序所在目录/node_modules/service-starter/health_check.sh
 
 HEALTHCHECK \
     # 每次检查的间隔时间
@@ -16,4 +16,4 @@ HEALTHCHECK \
     # 连续多少次检查失败可判定该服务是unhealthy
     --retries=3 \
     # 调用程序所暴露出的健康检查接口(要使用绝对路径)
-    CMD /app/node_modules/service-starter/src/Docker/health_check.sh
+    CMD /程序所在目录/node_modules/service-starter/health_check.sh
