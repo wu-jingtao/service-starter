@@ -3,19 +3,19 @@
  */
 export enum RunningStatus {
     /**
-     *  已停止 
+     * 已停止
      */
     stopped,
     /**
-     *  正在运行
-     */
-    running,
-    /**
-     *  正在启动
+     * 正在启动
      */
     starting,
     /**
-     *  正在停止
+     * 正在运行
      */
-    stopping
+    running,
+    /**
+     * 正在停止
+     */
+    stopping,
 }

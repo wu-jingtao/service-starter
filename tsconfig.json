@@ -1,19 +1,58 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        "target": "es2019",
-        "preserveConstEnums": false,
-        "experimentalDecorators": false,
-        "noEmitOnError": true,
+        /**
+         * 类型检查 (这些交由 eslint 处理)
+         */
+        "allowUnreachableCode": true,
+        "allowUnusedLabels": true,
+        "noFallthroughCasesInSwitch": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+
+        /**
+         * 类型检查 (这些交由 typescript 处理)
+         */
         "strict": true,
-        "strictPropertyInitialization": false,
-        "skipLibCheck": true,
-        "resolveJsonModule": true,
-        "forceConsistentCasingInFileNames": true,
+        "exactOptionalPropertyTypes": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": false,                             // 要求每条分支都必须有一个 return 关键字
+        "noPropertyAccessFromIndexSignature": false,            // 禁止使用 obj.property 的方式去访问 obj['property']
+        "noUncheckedIndexedAccess": true,
+
+        /**
+         * 模块导入
+         */
+        "allowImportingTsExtensions": false,
+        "allowUmdGlobalAccess": true,
+        "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
-        "declaration": true,
-        "removeComments": false,
-        "lib": ["esnext"]
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "importHelpers": true,                                  // 开启后必须安装 tslib 库
+
+        /**
+         * 启用编译缓存
+         */
+        "incremental": true,
+        "tsBuildInfoFile": ".cache/.tsbuildinfo",               // 缓存路径
+
+        /**
+         * 编译系统
+         */
+        "noEmitOnError": true,
+        "noErrorTruncation": true,
+        "skipLibCheck": true,
+        "pretty": true,
+        "stripInternal": true,
+
+         /**
+         * 编译输出
+         */
+        "rootDir": "./src",                                     // 源文件目录
+        "outDir": "./dist",                                     // 输出目录
+        "target": "esNext",                                     // 目标 JS 版本
+        "module": "CommonJS",                                   // 模块系统
+        "declaration": true,                                    // 生成`.d.ts`文件
+        "lib": ["ESNext"],
     },
-    "exclude": ["node_modules", "bin"]
 }

@@ -1,23 +1,24 @@
-# 创建release时发布到npm
+# 创建 release 时发布到 npm
 name: publish to npm
 
 on:
-    release:
-        types: [published]
+  release:
+    types: [published]
 
 jobs:
-    publish:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@master
-            - uses: actions/setup-node@v1
-              with:
-                  node-version: '14.x'
-                  registry-url: https://registry.npmjs.org/
-            - run: npm install
-            - run: npm run lint
-            - run: npm run compile
-            - run: cp ./src/Docker/health_check.sh .
-            - run: npm publish
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '23.x'
+          registry-url: https://registry.npmjs.org/
+      - run: npm i
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run compile
+      - run: cp ./src/Docker/health_check.sh .
+      - run: npm publish
+        env:
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

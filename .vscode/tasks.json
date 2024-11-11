@@ -9,6 +9,16 @@
             "command": "npm run compile"
         },
         {
+            "label": "编译-Watch",
+            "type": "shell",
+            "command": "npm run compile-watch"
+        },
+        {
+            "label": "测试",
+            "type": "shell",
+            "command": "npm run test"
+        },
+        {
             "label": "Lint",
             "type": "shell",
             "command": "npm run lint"
