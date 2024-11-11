@@ -18,7 +18,6 @@ jobs:
       - run: npm run lint
       - run: npm run test
       - run: npm run compile
-      - run: cp ./src/Docker/health_check.sh .
       - run: npm publish
         env:
             NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
