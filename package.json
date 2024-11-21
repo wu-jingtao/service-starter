@@ -1,6 +1,6 @@
 {
     "name": "service-starter",
-    "version": "5.0.0",
+    "version": "5.0.1",
     "description": "标准化 JavaScript 程序体系结构，提供了一种通用的启动和关闭程序的方式，兼容 Docker，使用 Typescript 编写",
     "keywords": [
         "service",

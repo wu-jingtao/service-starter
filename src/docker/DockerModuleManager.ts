@@ -1,6 +1,7 @@
 import http from 'http';
 import log from 'log-formatter';
-import { NodeModuleManager, type NodeModuleManagerOptions } from '../node/NodeModuleManager';
+import { RunningStatus } from '../base/RunningStatus';
+import { NodeModuleManager, type NodeModuleManagerOptions, type HealthCheckResult } from '../node/NodeModuleManager';
 
 export interface DockerModuleManagerOptions extends NodeModuleManagerOptions {
     /**
@@ -12,7 +13,7 @@ export interface DockerModuleManagerOptions extends NodeModuleManagerOptions {
 /**
  * 在 NodeModuleManager 的基础上添加了健康检查的服务器
  * @description
- * 健康返回 200 ok，异常返回 500 bad
+ * 健康返回 200，异常返回 500
  */
 export class DockerModuleManager extends NodeModuleManager {
     constructor(options: DockerModuleManagerOptions = {}) {
@@ -20,13 +21,24 @@ export class DockerModuleManager extends NodeModuleManager {
 
         // 创建服务器
         const server = http.createServer(async (req, res) => {
-            const result = await this.healthCheck();
-            if (result) {
-                res.statusCode = 500;
-                res.end('bad');
-            } else {
+            const exception = await this.healthCheck();
+
+            if (exception === undefined) {
                 res.statusCode = 200;
-                res.end('ok');
+                res.end(JSON.stringify({
+                    healthy: true,
+                    managerStatue: RunningStatus[this.status] as keyof typeof RunningStatus,
+                    type: 'health_check'
+                } satisfies HealthCheckResult));
+            } else {
+                res.statusCode = 500;
+                res.end(JSON.stringify({
+                    healthy: false,
+                    managerStatue: RunningStatus[this.status] as keyof typeof RunningStatus,
+                    moduleName: exception.module?.name,
+                    description: exception.error.message,
+                    type: 'health_check'
+                } satisfies HealthCheckResult));
             }
         });
 

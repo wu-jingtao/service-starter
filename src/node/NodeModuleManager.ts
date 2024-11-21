@@ -1,5 +1,6 @@
 import log from 'log-formatter';
 import { ModuleManager, type ModuleManagerOptions } from '../base/ModuleManager';
+import { RunningStatus } from '../base/RunningStatus';
 
 const print_failure: (description: string, err: unknown) => void = log.error.dateTime.text.red.linebreak;
 
@@ -27,6 +28,32 @@ export interface NodeModuleManagerOptions extends ModuleManagerOptions {
      * 当有未捕获异常（包括 promise rejection）产生时是否关闭模块管理器
      */
     stopOnUnhandledError?: boolean;
+}
+
+/**
+ * 健康检查结果
+ */
+export interface HealthCheckResult {
+    /**
+     * 是否健康
+     */
+    healthy: boolean;
+    /**
+     * 模块管理器的运行状态
+     */
+    managerStatue: keyof typeof RunningStatus;
+    /**
+     * 健康检查失败模块名称，为空则表示模块管理器出现了问题
+     */
+    moduleName?: string | undefined;
+    /**
+     * 健康检查失败错误信息
+     */
+    description?: string;
+    /**
+     * 标记该条消息是健康检查的结果
+     */
+    type: 'health_check';
 }
 
 /**
@@ -90,17 +117,21 @@ export class NodeModuleManager extends ModuleManager {
             const listener = async (message: string): Promise<void> => {
                 if (message === '__health_check__') {
                     const exception = await this.healthCheck();
-                    type Result = { healthy: boolean; moduleName?: string | undefined; description?: string; type: 'health_check' };
 
                     if (exception === undefined) {
-                        process.send?.({ healthy: true, type: 'health_check' } satisfies Result);
+                        process.send?.({
+                            healthy: true,
+                            managerStatue: RunningStatus[this.status] as keyof typeof RunningStatus,
+                            type: 'health_check'
+                        } satisfies HealthCheckResult);
                     } else {
                         process.send?.({
                             healthy: false,
+                            managerStatue: RunningStatus[this.status] as keyof typeof RunningStatus,
                             moduleName: exception.module?.name,
                             description: exception.error.message,
                             type: 'health_check'
-                        } satisfies Result);
+                        } satisfies HealthCheckResult);
                     }
                 }
             };

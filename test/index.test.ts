@@ -11,6 +11,7 @@ import expect from 'expect.js';
 import { Module } from '../src/base/Module';
 import { ModuleManager, type ModuleManagerOptions } from '../src/base/ModuleManager';
 import { RunningStatus } from '../src/base/RunningStatus';
+import type { HealthCheckResult } from '../src';
 
 describe('测试 Base', function () {
     const testResult: any[] = [];
@@ -889,9 +890,12 @@ describe('测试 Node', function () {
                     if (message.ok) {
                         switch (message.message) {
                             case 1: {
-                                child.once('message', (message: any) => {
+                                child.once('message', (message: HealthCheckResult) => {
                                     try {
                                         expect(message.healthy).to.be(true);
+                                        expect(message.managerStatue).to.be('running');
+                                        expect(message.moduleName).to.be(undefined);
+                                        expect(message.description).to.be(undefined);
                                         expect(message.type).to.be('health_check');
                                     } catch (error) {
                                         reject(error as Error);
@@ -902,9 +906,10 @@ describe('测试 Node', function () {
                                 break;
                             }
                             case 2: {
-                                child.once('message', (message: any) => {
+                                child.once('message', (message: HealthCheckResult) => {
                                     try {
                                         expect(message.healthy).to.be(false);
+                                        expect(message.managerStatue).to.be('running');
                                         expect(message.moduleName).to.be('test2');
                                         expect(message.description).to.be('test2 onHealthCheck');
                                         expect(message.type).to.be('health_check');
@@ -1074,8 +1079,14 @@ describe('测试 docker', function () {
                             case 1: {
                                 try {
                                     const res = await fetch('http://localhost:8000');
+                                    const message: HealthCheckResult = JSON.parse(await res.text());
+
                                     expect(res.status).to.be(200);
-                                    expect(await res.text()).to.be('ok');
+                                    expect(message.healthy).to.be(true);
+                                    expect(message.managerStatue).to.be('running');
+                                    expect(message.moduleName).to.be(undefined);
+                                    expect(message.description).to.be(undefined);
+                                    expect(message.type).to.be('health_check');
                                 } catch (error) {
                                     reject(error as Error);
                                 }
@@ -1084,8 +1095,14 @@ describe('测试 docker', function () {
                             case 2: {
                                 try {
                                     const res = await fetch('http://localhost:8000');
+                                    const message: HealthCheckResult = JSON.parse(await res.text());
+
                                     expect(res.status).to.be(500);
-                                    expect(await res.text()).to.be('bad');
+                                    expect(message.healthy).to.be(false);
+                                    expect(message.managerStatue).to.be('running');
+                                    expect(message.moduleName).to.be('test2');
+                                    expect(message.description).to.be('test2 onHealthCheck');
+                                    expect(message.type).to.be('health_check');
                                 } catch (error) {
                                     reject(error as Error);
                                 }
