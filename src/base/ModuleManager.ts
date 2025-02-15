@@ -92,6 +92,7 @@ export class ModuleManager extends Emitter {
      * 按照注册的先后顺序来启动，先注册的先启动。
      * 如果启动的过程中某个模块出现了异常，则后面的模块将不再被启动，之前启动过了的模块也会被依次关闭（按照从后向前的顺序关闭）。
      * 如果启动成功将触发 started 事件。
+     * 如果启动失败将触发 stopped 事件。
      * @returns 如果启动的过程中出现了异常，则返回一个数组，其中包含了所有的异常信息
      */
     async start(): Promise<void | { module?: Module; error: Error }[]> {
@@ -148,6 +149,7 @@ export class ModuleManager extends Emitter {
                 print_manager_failure(this.name, '启动失败', undefined);
                 // @ts-expect-error: 修改模块管理器运行状态
                 this.status = RunningStatus.stopped;
+                this.emit('stopped', 2);
             } else {
                 print_manager_success(this.name, '启动成功');
                 // @ts-expect-error: 修改模块管理器运行状态

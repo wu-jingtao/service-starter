@@ -42,7 +42,7 @@ export class DockerModuleManager extends NodeModuleManager {
             }
         });
 
-        server.on('error', err => {
+        server.on('error', (err) => {
             log.error.dateTime.location.text.red.linebreak(this.name, '健康检查服务器出现异常', err);
         });
 

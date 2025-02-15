@@ -140,9 +140,9 @@ describe('测试 Base', function () {
         expect(test3.status).to.be(RunningStatus.stopped);
 
         expect(testResult).to.eql([
-            ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-            ..._.times(3, i => `test${i + 1} onHealthCheck running running`),
-            ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 0'
+            ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+            ..._.times(3, (i) => `test${i + 1} onHealthCheck running running`),
+            ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 0'
         ]);
     });
 
@@ -161,8 +161,9 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(2, i => `test${i + 1} onStart starting starting`),
-                ..._.times(2, i => `test${i + 1} onStop stopping starting`).reverse()
+                ..._.times(2, (i) => `test${i + 1} onStart starting starting`),
+                ..._.times(2, (i) => `test${i + 1} onStop stopping starting`).reverse(),
+                'manager stopped 2'
             ]);
         });
 
@@ -180,8 +181,9 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(2, i => `test${i + 1} onStart starting starting`),
-                ..._.times(2, i => `test${i + 1} onStop stopping starting`).reverse()
+                ..._.times(2, (i) => `test${i + 1} onStart starting starting`),
+                ..._.times(2, (i) => `test${i + 1} onStop stopping starting`).reverse(),
+                'manager stopped 2'
             ]);
         });
 
@@ -222,12 +224,15 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(1, i => `test${i + 1} onStart starting starting`),
-                ..._.times(2, i => `test${i + 1} onStop stopping starting`).reverse(),
-                ..._.times(1, i => `test${i + 1} onStart starting starting`),
-                ..._.times(2, i => `test${i + 1} onStop stopping starting`).reverse(),
-                ..._.times(1, i => `test${i + 1} onStart starting starting`),
-                ..._.times(1, i => `test${i + 1} onStop stopping starting`).reverse(),
+                ..._.times(1, (i) => `test${i + 1} onStart starting starting`),
+                ..._.times(2, (i) => `test${i + 1} onStop stopping starting`).reverse(),
+                'manager stopped 2',
+                ..._.times(1, (i) => `test${i + 1} onStart starting starting`),
+                ..._.times(2, (i) => `test${i + 1} onStop stopping starting`).reverse(),
+                'manager stopped 2',
+                ..._.times(1, (i) => `test${i + 1} onStart starting starting`),
+                ..._.times(1, (i) => `test${i + 1} onStop stopping starting`).reverse(),
+                'manager stopped 2'
             ]);
         });
 
@@ -287,8 +292,8 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
             ]);
         });
 
@@ -307,8 +312,8 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
             ]);
         });
 
@@ -351,12 +356,12 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(2, i => `test${i === 0 ? 1 : 3} onStop stopping stopping`).reverse(), 'manager stopped 2',
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 0',
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(2, i => `test${i === 0 ? 1 : 3} onStop stopping stopping`).reverse(), 'manager stopped 2',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(2, (i) => `test${i === 0 ? 1 : 3} onStop stopping stopping`).reverse(), 'manager stopped 2',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 0',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(2, (i) => `test${i === 0 ? 1 : 3} onStop stopping stopping`).reverse(), 'manager stopped 2',
             ]);
         });
 
@@ -400,12 +405,12 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2',
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2',
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2',
             ]);
         });
     });
@@ -434,7 +439,7 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.running);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
                 'test2 onError test2_message', 'manager onError test2 test2_message',
                 'test3 onError test3_message',
             ]);
@@ -463,10 +468,10 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
                 'test2 onError test2_message',
                 'test3 onError test3_message', 'manager onError test3 test3_message',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
             ]);
         });
     });
@@ -512,8 +517,8 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.running);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(2, i => `test${i + 1} onHealthCheck running running`),
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(2, (i) => `test${i + 1} onHealthCheck running running`),
                 'manager onUnhealthy test2 test2 onHealthCheck',
             ]);
         });
@@ -534,10 +539,10 @@ describe('测试 Base', function () {
             expect(test3.status).to.be(RunningStatus.stopped);
 
             expect(testResult).to.eql([
-                ..._.times(3, i => `test${i + 1} onStart starting starting`), 'manager started',
-                ..._.times(2, i => `test${i + 1} onHealthCheck running running`),
+                ..._.times(3, (i) => `test${i + 1} onStart starting starting`), 'manager started',
+                ..._.times(2, (i) => `test${i + 1} onHealthCheck running running`),
                 'manager onUnhealthy test2 test2 onHealthCheck',
-                ..._.times(3, i => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
+                ..._.times(3, (i) => `test${i + 1} onStop stopping stopping`).reverse(), 'manager stopped 2'
             ]);
         });
     });
@@ -695,7 +700,7 @@ describe('测试 Node', function () {
             child.on('message', (message: any) => {
                 if (message.type === 'testing') {
                     if (message.ok) {
-                        child.on('exit', exitCode => {
+                        child.on('exit', (exitCode) => {
                             exitCode ? reject(new Error(`exit code ${exitCode}`)) : resolve();
                         });
                     } else {
@@ -738,7 +743,7 @@ describe('测试 Node', function () {
             child.on('message', (message: any) => {
                 if (message.type === 'testing') {
                     if (message.ok) {
-                        child.on('exit', exitCode => {
+                        child.on('exit', (exitCode) => {
                             exitCode ? reject(new Error(`exit code ${exitCode}`)) : resolve();
                         });
 
@@ -783,7 +788,7 @@ describe('测试 Node', function () {
             child.on('message', (message: any) => {
                 if (message.type === 'testing') {
                     if (message.ok) {
-                        child.on('exit', exitCode => {
+                        child.on('exit', (exitCode) => {
                             exitCode ? reject(new Error(`exit code ${exitCode}`)) : resolve();
                         });
 
@@ -831,7 +836,7 @@ describe('测试 Node', function () {
             child.on('message', (message: any) => {
                 if (message.type === 'testing') {
                     if (message.ok) {
-                        child.on('exit', exitCode => {
+                        child.on('exit', (exitCode) => {
                             exitCode !== 2 ? reject(new Error(`exit code ${exitCode}`)) : resolve();
                         });
                     } else {
