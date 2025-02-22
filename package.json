@@ -23,7 +23,7 @@
     ],
     "scripts": {
         "lint": "eslint --max-warnings 0 \"{src,test}/**/*.{ts,mts,cts,tsx}\"",
-        "test": "mocha --require ts-node/register './test/**/*.test.ts'",
+        "test": "mocha --require tsx './test/**/*.test.ts'",
         "compile": "tsc --project tsconfig.compile.json",
         "compile-watch": "tsc --watch --project tsconfig.compile.json"
     },
@@ -32,12 +32,12 @@
         "@types/expect.js": "^0.3.32",
         "@types/lodash": "^4.17.15",
         "@types/mocha": "^10.0.10",
-        "@types/node": "^22.13.4",
+        "@types/node": "^22.13.5",
         "eslint-config-sufu": "^3.0.6",
         "expect.js": "^0.3.1",
         "lodash": "^4.17.21",
         "mocha": "^11.1.0",
-        "ts-node": "^10.9.2",
+        "tsx": "^4.19.3",
         "typescript": "^5.7.3"
     },
     "dependencies": {

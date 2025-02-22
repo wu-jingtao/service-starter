@@ -14,7 +14,7 @@
                 "${workspaceFolder}/node_modules/**",   // 跳过所有 node_modules 代码
             ],
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
-            "args": ["--timeout", "999999", "--colors", "--require", "ts-node/register", "${workspaceRoot}/test/index.test.ts"],
+            "args": ["--timeout", "999999", "--colors", "--require", "tsx", "${workspaceRoot}/test/index.test.ts"],
         },
     ]
 }

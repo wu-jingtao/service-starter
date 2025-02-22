@@ -644,7 +644,7 @@ describe('测试 Node', function () {
         fs.writeFileSync(tempFile, code);
 
         return fork(tempFile, {
-            execArgv: ['--require', 'ts-node/register'],
+            execArgv: ['--import', 'tsx'],
             stdio: [0, 1, 2, 'ipc'],
             timeout: 1000 * 15
         });
@@ -1028,7 +1028,7 @@ describe('测试 docker', function () {
         fs.writeFileSync(tempFile, code);
 
         return fork(tempFile, {
-            execArgv: ['--require', 'ts-node/register'],
+            execArgv: ['--import', 'tsx'],
             stdio: [0, 1, 2, 'ipc'],
             timeout: 1000 * 15
         });
