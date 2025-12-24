@@ -42,7 +42,7 @@ export abstract class Module extends Emitter {
      * 启动之后(运行过程中)出现的错误，要通过 this.emit('error') 来处理。
      * 尽可能多地捕捉异常，然后在 onError 中处理，未捕捉到的异常根据平台的不同可能会导致程序直接被关闭。
      */
-    abstract onStart(): Promise<void>; // eslint-disable-line @typescript-eslint/member-ordering
+    abstract onStart(): Promise<void>;
 
     /**
      * 模块停止时要执行的代码
