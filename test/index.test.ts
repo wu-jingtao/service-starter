@@ -1,6 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/parameter-properties */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 
 import fs from 'fs';
 import path from 'path';

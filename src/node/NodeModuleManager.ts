@@ -2,30 +2,35 @@ import log from 'log-formatter';
 import { ModuleManager, type ModuleManagerOptions } from '../base/ModuleManager';
 import { RunningStatus } from '../base/RunningStatus';
 
-const print_failure: (description: string, err: unknown) => void = log.error.dateTime.text.red.linebreak;
+const print_error: (description: string, err: unknown) => void = log.error.dateTime.text.red.linebreak;
 
 /**
  * Node.js 模块管理器配置参数
  */
 export interface NodeModuleManagerOptions extends ModuleManagerOptions {
     /**
-     * 当服务管理器关闭后是否退出程序，默认 true
+     * 当服务管理器关闭后是否退出程序
+     * @default true
      */
     exitAfterStopped?: boolean;
     /**
-     * 当收到 SIGTERM 信号时是否关闭模块管理器，默认 true
+     * 当收到 SIGTERM 信号时是否关闭模块管理器
+     * @default true
      */
     stopOnSIGTERM?: boolean;
     /**
-     * 当收到 SIGINT 信号时是否关闭模块管理器，默认 true
+     * 当收到 SIGINT 信号时是否关闭模块管理器
+     * @default true
      */
     stopOnSIGINT?: boolean;
     /**
-     * 是否打印未捕获异常，默认 true
+     * 是否打印未捕获异常
+     * @default true
      */
     printUnhandledError?: boolean;
     /**
      * 当有未捕获异常（包括 promise rejection）产生时是否关闭模块管理器
+     * @default false
      */
     stopOnUnhandledError?: boolean;
 }
@@ -60,7 +65,7 @@ export interface HealthCheckResult {
  * 在 ModuleManager 的基础上添加了全局未捕获异常处理，退出信号控制，健康检查调用
  * @description
  * 父进程通过 subprocess.send('\_\_health_check\_\_') 进行健康检查，
- * 子进程返回 { healthy: boolean, moduleName:string , description: string, type='health_check' } 作为检查结果）。
+ * 子进程返回 HealthCheckResult 作为检查结果）。
  * @description 事件列表
  * ```typescript
  * on(event: 'started', listener: () => void): Emitter;
@@ -98,7 +103,7 @@ export class NodeModuleManager extends ModuleManager {
         }
 
         if (options.printUnhandledError ?? true) {
-            this.on('unhandledError', (err: Error) => { print_failure('未捕获异常', err) });
+            this.on('unhandledError', (err: Error) => { print_error('未捕获异常', err) });
         }
 
         if (options.stopOnUnhandledError) {

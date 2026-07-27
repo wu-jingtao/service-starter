@@ -5,7 +5,7 @@
 ## 安装
 
 ```
-npm i service-starter && npm i @types/component-emitter -D
+npm i service-starter
 ```
 
 ## 程序结构

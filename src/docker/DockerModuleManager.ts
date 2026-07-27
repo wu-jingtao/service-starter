@@ -3,9 +3,12 @@ import log from 'log-formatter';
 import { RunningStatus } from '../base/RunningStatus';
 import { NodeModuleManager, type NodeModuleManagerOptions, type HealthCheckResult } from '../node/NodeModuleManager';
 
+const print_error: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.text.red.linebreak;
+
 export interface DockerModuleManagerOptions extends NodeModuleManagerOptions {
     /**
-     * 健康检查服务器的端口号，默认 8000
+     * 健康检查服务器的端口号
+     * @default 8000
      */
     healthCheckPort?: number;
 }
@@ -43,7 +46,7 @@ export class DockerModuleManager extends NodeModuleManager {
         });
 
         server.on('error', (err) => {
-            log.error.dateTime.location.text.red.linebreak(this.name, '健康检查服务器出现异常', err);
+            print_error(this.name, '健康检查服务器出现异常', err);
         });
 
         server.listen(options.healthCheckPort ?? 8000);

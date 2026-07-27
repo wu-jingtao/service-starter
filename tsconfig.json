@@ -54,5 +54,6 @@
         "module": "CommonJS",                                   // 模块系统
         "declaration": true,                                    // 生成`.d.ts`文件
         "lib": ["ESNext"],
+        "types": ["node", "mocha"]
     },
 }

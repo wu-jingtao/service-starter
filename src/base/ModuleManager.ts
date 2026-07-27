@@ -6,31 +6,35 @@ import type { Module } from './Module';
 const print_manager_info: (name: string, description: string) => void = log.dateTime.location.bold.text.cyan.bold;
 const print_manager_success: (name: string, description: string) => void = log.dateTime.location.bold.text.green.bold;
 const print_manager_warning: (name: string, description: string, err: unknown) => void = log.warn.dateTime.location.bold.text.yellow.bold.linebreak;
-const print_manager_failure: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.bold.text.red.bold.linebreak;
+const print_manager_error: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.bold.text.red.bold.linebreak;
 
 const print_module_info: (name: string, description: string) => void = log.dateTime.location.text.cyan;
 const print_module_success: (name: string, description: string) => void = log.dateTime.location.text.green;
 const print_module_warning: (name: string, description: string, err: unknown) => void = log.warn.dateTime.location.text.yellow.linebreak;
-const print_module_failure: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.text.red.linebreak;
+const print_module_error: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.text.red.linebreak;
 
 /**
  * 模块管理器配置参数
  */
 export interface ModuleManagerOptions {
     /**
-     * 是否打印未处理的错误信息，默认 true
+     * 是否打印未处理的错误信息
+     * @default true
      */
     printError?: boolean;
     /**
-     * 是否打印健康检查异常信息，默认 true
+     * 是否打印健康检查异常信息
+     * @default true
      */
     printUnhealthy?: boolean;
     /**
      * 当触发 error 事件时，是否自动 stop(2)
+     * @default false
      */
     stopOnError?: boolean;
     /**
      * 当触发 unhealthy 事件时，是否自动 stop(2)
+     * @default false
      */
     stopOnUnhealthy?: boolean;
 }
@@ -70,7 +74,7 @@ export class ModuleManager extends Emitter {
         super();
 
         if (options.printError ?? true) {
-            this.on('error', (err: Error, module: Module) => { print_module_failure(module.name, '发生错误', err) });
+            this.on('error', (err: Error, module: Module) => { print_module_error(module.name, '发生错误', err) });
         }
 
         if (options.printUnhealthy ?? true) {
@@ -97,6 +101,7 @@ export class ModuleManager extends Emitter {
      */
     async start(): Promise<void | { module?: Module; error: Error }[]> {
         const exceptions: { module?: Module; error: Error }[] = [];
+
         print_manager_info(this.name, '开始启动');
 
         if (this.status === RunningStatus.stopped) {
@@ -115,13 +120,13 @@ export class ModuleManager extends Emitter {
                         item.status = RunningStatus.running;
                         print_module_success(item.name, '启动成功');
                     } catch (err) {
-                        print_module_failure(item.name, '启动失败', err);
+                        print_module_error(item.name, '启动失败', err);
                         exceptions.push({ module: item, error: err as Error });
                         break;
                     }
                 } else {
                     const err = new Error(`模块 ${item.name} 处于 ${RunningStatus[item.status]} 的状况下又再次被 启动`);
-                    print_module_failure(item.name, '启动失败', err);
+                    print_module_error(item.name, '启动失败', err);
                     exceptions.push({ module: item, error: err });
                     break;
                 }
@@ -140,13 +145,13 @@ export class ModuleManager extends Emitter {
                             item.status = RunningStatus.stopped;
                             print_module_success(item.name, '关闭成功');
                         } catch (err) {
-                            print_module_failure(item.name, '关闭失败', err);
+                            print_module_error(item.name, '关闭失败', err);
                             exceptions.push({ module: item, error: err as Error });
                         }
                     }
                 }
 
-                print_manager_failure(this.name, '启动失败', undefined);
+                print_manager_error(this.name, '启动失败', undefined);
                 // @ts-expect-error: 修改模块管理器运行状态
                 this.status = RunningStatus.stopped;
                 this.emit('stopped', 2);
@@ -158,7 +163,7 @@ export class ModuleManager extends Emitter {
             }
         } else {
             const err = new Error(`模块管理器 ${this.name} 处于 ${RunningStatus[this.status]} 的状况下又再次被 启动`);
-            print_manager_failure(this.name, '启动失败', err);
+            print_manager_error(this.name, '启动失败', err);
             exceptions.push({ error: err });
         }
 
@@ -176,6 +181,7 @@ export class ModuleManager extends Emitter {
      */
     async stop(exitCode = 0): Promise<void | { module?: Module; error: Error }[]> {
         const exceptions: { module?: Module; error: Error }[] = [];
+
         print_manager_info(this.name, '开始关闭');
 
         if (this.status !== RunningStatus.running) {
@@ -199,7 +205,7 @@ export class ModuleManager extends Emitter {
                     // @ts-expect-error: 修改模块运行状态
                     item.status = RunningStatus.stopped;
                 } catch (err) {
-                    print_module_failure(item.name, '关闭失败', err);
+                    print_module_error(item.name, '关闭失败', err);
                     exceptions.push({ module: item, error: err as Error });
                 }
             } else {
@@ -229,7 +235,7 @@ export class ModuleManager extends Emitter {
                 try {
                     await item.onHealthCheck();
                 } catch (err) {
-                    this.emit('unhealthy', err as Error, item);
+                    this.emit('unhealthy', err, item);
                     return { module: item, error: err as Error };
                 }
             }
@@ -265,6 +271,7 @@ export class ModuleManager extends Emitter {
             }
         });
 
-        (this.modules as Map<string, Module>).set(module.name, module);
+        // @ts-expect-error: 注册模块
+        this.modules.set(module.name, module);
     }
 }

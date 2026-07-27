@@ -49,14 +49,14 @@ export abstract class Module extends Emitter {
      * @description
      * 注意：停止过程中出现的错误要通过 Promise.reject() 来处理。
      */
-    async onStop(): Promise<void> { } // eslint-disable-line @typescript-eslint/no-empty-function
+    async onStop(): Promise<void> { /* _ */ }
 
     /**
      * 检查当前模块的运行是否正常（只有模块处于 Running 状态时才会被调用）
      * @description
      * 如果正常直接 Promise.resolve() ，如果异常直接 Promise.reject()
      */
-    async onHealthCheck(): Promise<void> { } // eslint-disable-line @typescript-eslint/no-empty-function
+    async onHealthCheck(): Promise<void> { /* _ */ }
 
     /**
      * 模块出现异常时要执行的代码
@@ -70,7 +70,7 @@ export abstract class Module extends Emitter {
      * 返回 undefined：错误将触发 ModuleManager 的 error 事件。
      * @throws 新的 Error 将触发 ModuleManager 的 error 事件。
      */
-    async onError(err: Error): Promise<false | void> { } // eslint-disable-line @typescript-eslint/no-empty-function
+    async onError(err: Error): Promise<false | void> { /* _ */ }
 
     override emit(event: 'error', error: Error): this;
     override emit(event: string, ...args: any[]): this;
