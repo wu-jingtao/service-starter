@@ -1,9 +1,7 @@
 import http from 'http';
-import log from 'log-formatter';
+import { printManagerError } from '../tool/logger';
 import { RunningStatus } from '../base/RunningStatus';
 import { NodeModuleManager, type NodeModuleManagerOptions, type HealthCheckResult } from '../node/NodeModuleManager';
-
-const print_error: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.text.red.linebreak;
 
 export interface DockerModuleManagerOptions extends NodeModuleManagerOptions {
     /**
@@ -46,7 +44,7 @@ export class DockerModuleManager extends NodeModuleManager {
         });
 
         server.on('error', (err) => {
-            print_error(this.name, '健康检查服务器出现异常', err);
+            printManagerError(this.name, '健康检查服务器出现异常', err);
         });
 
         server.listen(options.healthCheckPort ?? 8000);

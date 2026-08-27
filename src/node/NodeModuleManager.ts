@@ -1,8 +1,6 @@
-import log from 'log-formatter';
-import { ModuleManager, type ModuleManagerOptions } from '../base/ModuleManager';
+import { printError } from '../tool/logger';
 import { RunningStatus } from '../base/RunningStatus';
-
-const print_error: (description: string, err: unknown) => void = log.error.dateTime.text.red.linebreak;
+import { ModuleManager, type ModuleManagerOptions } from '../base/ModuleManager';
 
 /**
  * Node.js 模块管理器配置参数
@@ -103,7 +101,7 @@ export class NodeModuleManager extends ModuleManager {
         }
 
         if (options.printUnhandledError ?? true) {
-            this.on('unhandledError', (err: Error) => { print_error('未捕获异常', err) });
+            this.on('unhandledError', (err: Error) => { printError('未捕获异常', err) });
         }
 
         if (options.stopOnUnhandledError) {

@@ -1,17 +1,7 @@
-import log from 'log-formatter';
 import Emitter from 'component-emitter';
+import * as logger from '../tool/logger';
 import { RunningStatus } from './RunningStatus';
 import type { Module } from './Module';
-
-const print_manager_info: (name: string, description: string) => void = log.dateTime.location.bold.text.cyan.bold;
-const print_manager_success: (name: string, description: string) => void = log.dateTime.location.bold.text.green.bold;
-const print_manager_warning: (name: string, description: string, err: unknown) => void = log.warn.dateTime.location.bold.text.yellow.bold.linebreak;
-const print_manager_error: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.bold.text.red.bold.linebreak;
-
-const print_module_info: (name: string, description: string) => void = log.dateTime.location.text.cyan;
-const print_module_success: (name: string, description: string) => void = log.dateTime.location.text.green;
-const print_module_warning: (name: string, description: string, err: unknown) => void = log.warn.dateTime.location.text.yellow.linebreak;
-const print_module_error: (name: string, description: string, err: unknown) => void = log.error.dateTime.location.text.red.linebreak;
 
 /**
  * 模块管理器配置参数
@@ -74,11 +64,11 @@ export class ModuleManager extends Emitter {
         super();
 
         if (options.printError ?? true) {
-            this.on('error', (err: Error, module: Module) => { print_module_error(module.name, '发生错误', err) });
+            this.on('error', (err: Error, module: Module) => { logger.printModuleError(module.name, '发生错误', err) });
         }
 
         if (options.printUnhealthy ?? true) {
-            this.on('unhealthy', (err: Error, module: Module) => { print_module_warning(module.name, '健康检查异常', err) });
+            this.on('unhealthy', (err: Error, module: Module) => { logger.printModuleWarning(module.name, '健康检查异常', err) });
         }
 
         if (options.stopOnError) {
@@ -102,14 +92,14 @@ export class ModuleManager extends Emitter {
     async start(): Promise<void | { module?: Module; error: Error }[]> {
         const exceptions: { module?: Module; error: Error }[] = [];
 
-        print_manager_info(this.name, '开始启动');
+        logger.printManagerInfo(this.name, '开始启动');
 
         if (this.status === RunningStatus.stopped) {
             // @ts-expect-error: 修改模块管理器运行状态
             this.status = RunningStatus.starting;
 
             for (const item of this.modules.values()) {
-                print_module_info(item.name, '开始启动');
+                logger.printModuleInfo(item.name, '开始启动');
 
                 if (item.status === RunningStatus.stopped) {
                     try {
@@ -118,15 +108,15 @@ export class ModuleManager extends Emitter {
                         await item.onStart();
                         // @ts-expect-error: 修改模块运行状态
                         item.status = RunningStatus.running;
-                        print_module_success(item.name, '启动成功');
+                        logger.printModuleSuccess(item.name, '启动成功');
                     } catch (err) {
-                        print_module_error(item.name, '启动失败', err);
+                        logger.printModuleError(item.name, '启动失败', err);
                         exceptions.push({ module: item, error: err as Error });
                         break;
                     }
                 } else {
                     const err = new Error(`模块 ${item.name} 处于 ${RunningStatus[item.status]} 的状况下又再次被 启动`);
-                    print_module_error(item.name, '启动失败', err);
+                    logger.printModuleError(item.name, '启动失败', err);
                     exceptions.push({ module: item, error: err });
                     break;
                 }
@@ -135,7 +125,7 @@ export class ModuleManager extends Emitter {
             if (exceptions.length > 0) {
                 for (const item of Array.from(this.modules.values()).reverse()) {
                     if (item.status === RunningStatus.running || item.status === RunningStatus.starting) {
-                        print_module_info(item.name, '开始关闭');
+                        logger.printModuleInfo(item.name, '开始关闭');
 
                         try {
                             // @ts-expect-error: 修改模块运行状态
@@ -143,27 +133,27 @@ export class ModuleManager extends Emitter {
                             await item.onStop();
                             // @ts-expect-error: 修改模块运行状态
                             item.status = RunningStatus.stopped;
-                            print_module_success(item.name, '关闭成功');
+                            logger.printModuleSuccess(item.name, '关闭成功');
                         } catch (err) {
-                            print_module_error(item.name, '关闭失败', err);
+                            logger.printModuleError(item.name, '关闭失败', err);
                             exceptions.push({ module: item, error: err as Error });
                         }
                     }
                 }
 
-                print_manager_error(this.name, '启动失败', undefined);
+                logger.printManagerError(this.name, '启动失败', '');
                 // @ts-expect-error: 修改模块管理器运行状态
                 this.status = RunningStatus.stopped;
                 this.emit('stopped', 2);
             } else {
-                print_manager_success(this.name, '启动成功');
+                logger.printManagerSuccess(this.name, '启动成功');
                 // @ts-expect-error: 修改模块管理器运行状态
                 this.status = RunningStatus.running;
                 this.emit('started');
             }
         } else {
             const err = new Error(`模块管理器 ${this.name} 处于 ${RunningStatus[this.status]} 的状况下又再次被 启动`);
-            print_manager_error(this.name, '启动失败', err);
+            logger.printManagerError(this.name, '启动失败', err);
             exceptions.push({ error: err });
         }
 
@@ -182,11 +172,11 @@ export class ModuleManager extends Emitter {
     async stop(exitCode = 0): Promise<void | { module?: Module; error: Error }[]> {
         const exceptions: { module?: Module; error: Error }[] = [];
 
-        print_manager_info(this.name, '开始关闭');
+        logger.printManagerInfo(this.name, '开始关闭');
 
         if (this.status !== RunningStatus.running) {
             const err = new Error(`模块管理器 ${this.name} 处于 ${RunningStatus[this.status]} 的状况下又再次被 关闭`);
-            print_manager_warning(this.name, '关闭异常', err);
+            logger.printManagerWarning(this.name, '关闭异常', err);
             exceptions.push({ error: err });
         }
 
@@ -194,28 +184,28 @@ export class ModuleManager extends Emitter {
         this.status = RunningStatus.stopping;
 
         for (const item of Array.from(this.modules.values()).reverse()) {
-            print_module_info(item.name, '开始关闭');
+            logger.printModuleInfo(item.name, '开始关闭');
 
             if (item.status === RunningStatus.running || item.status === RunningStatus.starting) {
                 try {
                     // @ts-expect-error: 修改模块运行状态
                     item.status = RunningStatus.stopping;
                     await item.onStop();
-                    print_module_success(item.name, '关闭成功');
+                    logger.printModuleSuccess(item.name, '关闭成功');
                     // @ts-expect-error: 修改模块运行状态
                     item.status = RunningStatus.stopped;
                 } catch (err) {
-                    print_module_error(item.name, '关闭失败', err);
+                    logger.printModuleError(item.name, '关闭失败', err);
                     exceptions.push({ module: item, error: err as Error });
                 }
             } else {
                 const err = new Error(`模块 ${item.name} 处于 ${RunningStatus[item.status]} 的状况下又再次被 关闭`);
-                print_module_warning(item.name, '关闭失败', err);
+                logger.printModuleWarning(item.name, '关闭失败', err);
                 exceptions.push({ module: item, error: err });
             }
         }
 
-        print_manager_success(this.name, '关闭成功');
+        logger.printManagerSuccess(this.name, '关闭成功');
         // @ts-expect-error: 修改模块管理器运行状态
         this.status = RunningStatus.stopped;
         this.emit('stopped', exceptions.length > 0 ? 2 : exitCode);

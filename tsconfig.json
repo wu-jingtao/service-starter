@@ -53,7 +53,7 @@
         "target": "esNext",                                     // 目标 JS 版本
         "module": "CommonJS",                                   // 模块系统
         "declaration": true,                                    // 生成`.d.ts`文件
-        "lib": ["ESNext"],
+        "lib": ["ESNext", "DOM"],
         "types": ["node", "mocha"]
     },
 }
