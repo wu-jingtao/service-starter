@@ -1,7 +1,5 @@
 import log from 'log-formatter';
 
-const isBrowser = typeof window !== 'undefined';
-
 // #region 普通消息
 
 /**
@@ -9,7 +7,7 @@ const isBrowser = typeof window !== 'undefined';
  * @param message 信息
  */
 export const printInfo: (message: string) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .dateTime
         .text.cyan;
 
@@ -18,7 +16,7 @@ export const printInfo: (message: string) => void =
  * @param message 信息
  */
 export const printSuccess: (message: string) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .dateTime
         .text.green;
 
@@ -28,7 +26,7 @@ export const printSuccess: (message: string) => void =
  * @param err 错误信息
  */
 export const printWarning: (message: string, err: unknown) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .warn
         .dateTime
         .text.yellow
@@ -40,7 +38,7 @@ export const printWarning: (message: string, err: unknown) => void =
  * @param err 错误信息
  */
 export const printError: (message: string, err: unknown) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .error
         .dateTime
         .text.red
@@ -56,7 +54,7 @@ export const printError: (message: string, err: unknown) => void =
  * @param message 信息
  */
 export const printModuleInfo: (location: string, message: string) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .dateTime
         .location
         .text.cyan;
@@ -67,7 +65,7 @@ export const printModuleInfo: (location: string, message: string) => void =
  * @param message 信息
  */
 export const printModuleSuccess: (location: string, message: string) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .dateTime
         .location
         .text.green;
@@ -79,7 +77,7 @@ export const printModuleSuccess: (location: string, message: string) => void =
  * @param err 错误信息
  */
 export const printModuleWarning: (location: string, message: string, err: unknown) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .warn
         .dateTime
         .location
@@ -93,7 +91,7 @@ export const printModuleWarning: (location: string, message: string, err: unknow
  * @param err 错误信息
  */
 export const printModuleError: (location: string, message: string, err: unknown) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .error
         .dateTime
         .location
@@ -110,7 +108,7 @@ export const printModuleError: (location: string, message: string, err: unknown)
  * @param message 信息
  */
 export const printManagerInfo: (location: string, message: string) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .dateTime
         .location.bold
         .text.cyan.bold;
@@ -121,7 +119,7 @@ export const printManagerInfo: (location: string, message: string) => void =
  * @param message 信息
  */
 export const printManagerSuccess: (location: string, message: string) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .dateTime
         .location.bold
         .text.green.bold;
@@ -133,7 +131,7 @@ export const printManagerSuccess: (location: string, message: string) => void =
  * @param err 错误信息
  */
 export const printManagerWarning: (location: string, message: string, err: unknown) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .warn
         .dateTime
         .location.bold
@@ -147,7 +145,7 @@ export const printManagerWarning: (location: string, message: string, err: unkno
  * @param err 错误信息
  */
 export const printManagerError: (location: string, message: string, err: unknown) => void =
-    (isBrowser ? log.level1 : log)
+    log
         .error
         .dateTime
         .location.bold
